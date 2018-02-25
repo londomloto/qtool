@@ -4,12 +4,10 @@
 		"php-ffmpeg/php-ffmpeg": "^0.11.1"
 	},
 
-	"repositories" : [
-	    {
-	        "type": "path",
-	        "url": "packages/londo"
-	    }
-	],
-
-	"minimum-stability": "dev"
+	"autoload": {
+		"psr-4": {
+			"QTool\\Api\\Libs\\": "src/Libs/",
+			"QTool\\Api\\Modules\\": "src/Modules/"
+		}
+	}
 }

@@ -12,6 +12,11 @@ class ComposerStaticInit4a0cbed65d808f0ddda5b9d0a68200b0
             'Symfony\\Component\\Process\\' => 26,
             'Symfony\\Component\\Filesystem\\' => 29,
         ),
+        'Q' => 
+        array (
+            'QTool\\Api\\Modules\\' => 18,
+            'QTool\\Api\\Libs\\' => 15,
+        ),
         'P' => 
         array (
             'Psr\\Log\\' => 8,
@@ -19,10 +24,6 @@ class ComposerStaticInit4a0cbed65d808f0ddda5b9d0a68200b0
         'M' => 
         array (
             'Monolog\\' => 8,
-        ),
-        'L' => 
-        array (
-            'Londo\\' => 6,
         ),
         'D' => 
         array (
@@ -39,6 +40,14 @@ class ComposerStaticInit4a0cbed65d808f0ddda5b9d0a68200b0
         array (
             0 => __DIR__ . '/..' . '/symfony/filesystem',
         ),
+        'QTool\\Api\\Modules\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/Modules',
+        ),
+        'QTool\\Api\\Libs\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/Libs',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
@@ -46,10 +55,6 @@ class ComposerStaticInit4a0cbed65d808f0ddda5b9d0a68200b0
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
-        ),
-        'Londo\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/londo/src',
         ),
         'Doctrine\\Common\\Cache\\' => 
         array (
@@ -230,11 +235,6 @@ class ComposerStaticInit4a0cbed65d808f0ddda5b9d0a68200b0
         'FFMpeg\\Media\\Video' => __DIR__ . '/..' . '/php-ffmpeg/php-ffmpeg/src/FFMpeg/Media/Video.php',
         'FFMpeg\\Media\\Waveform' => __DIR__ . '/..' . '/php-ffmpeg/php-ffmpeg/src/FFMpeg/Media/Waveform.php',
         'ICallbackNamed' => __DIR__ . '/..' . '/zomberg/phpquery/phpQuery/phpQuery/Callback.php',
-        'Londo\\Grabber' => __DIR__ . '/..' . '/londo/src/Grabber.php',
-        'Londo\\Media' => __DIR__ . '/..' . '/londo/src/Media.php',
-        'Londo\\Proxy' => __DIR__ . '/..' . '/londo/src/Proxy.php',
-        'Londo\\Text' => __DIR__ . '/..' . '/londo/src/Text.php',
-        'Londo\\Util' => __DIR__ . '/..' . '/londo/src/Util.php',
         'Monolog\\ErrorHandler' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/ErrorHandler.php',
         'Monolog\\Formatter\\ChromePHPFormatter' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Formatter/ChromePHPFormatter.php',
         'Monolog\\Formatter\\ElasticaFormatter' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Formatter/ElasticaFormatter.php',
@@ -337,6 +337,22 @@ class ComposerStaticInit4a0cbed65d808f0ddda5b9d0a68200b0
         'Psr\\Log\\NullLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/NullLogger.php',
         'Psr\\Log\\Test\\DummyTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
         'Psr\\Log\\Test\\LoggerInterfaceTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
+        'QTool\\Api\\Libs\\App' => __DIR__ . '/../..' . '/src/Libs/App.php',
+        'QTool\\Api\\Libs\\Grabber' => __DIR__ . '/../..' . '/src/Libs/Grabber.php',
+        'QTool\\Api\\Libs\\Hamster' => __DIR__ . '/../..' . '/src/Libs/Hamster.php',
+        'QTool\\Api\\Libs\\Media' => __DIR__ . '/../..' . '/src/Libs/Media.php',
+        'QTool\\Api\\Libs\\Module' => __DIR__ . '/../..' . '/src/Libs/Module.php',
+        'QTool\\Api\\Libs\\Proxy' => __DIR__ . '/../..' . '/src/Libs/Proxy.php',
+        'QTool\\Api\\Libs\\Request' => __DIR__ . '/../..' . '/src/Libs/Request.php',
+        'QTool\\Api\\Libs\\Response' => __DIR__ . '/../..' . '/src/Libs/Response.php',
+        'QTool\\Api\\Libs\\Text' => __DIR__ . '/../..' . '/src/Libs/Text.php',
+        'QTool\\Api\\Libs\\UTF8' => __DIR__ . '/../..' . '/src/Libs/UTF8.php',
+        'QTool\\Api\\Modules\\Assets' => __DIR__ . '/../..' . '/src/Modules/Assets.php',
+        'QTool\\Api\\Modules\\Fonts' => __DIR__ . '/../..' . '/src/Modules/Fonts.php',
+        'QTool\\Api\\Modules\\Gallery' => __DIR__ . '/../..' . '/src/Modules/Gallery.php',
+        'QTool\\Api\\Modules\\Grabber' => __DIR__ . '/../..' . '/src/Modules/Grabber.php',
+        'QTool\\Api\\Modules\\Sounds' => __DIR__ . '/../..' . '/src/Modules/Sounds.php',
+        'QTool\\Api\\Modules\\Videos' => __DIR__ . '/../..' . '/src/Modules/Videos.php',
         'Symfony\\Component\\Filesystem\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/symfony/filesystem/Exception/ExceptionInterface.php',
         'Symfony\\Component\\Filesystem\\Exception\\FileNotFoundException' => __DIR__ . '/..' . '/symfony/filesystem/Exception/FileNotFoundException.php',
         'Symfony\\Component\\Filesystem\\Exception\\IOException' => __DIR__ . '/..' . '/symfony/filesystem/Exception/IOException.php',

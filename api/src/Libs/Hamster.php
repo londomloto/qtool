@@ -1,5 +1,5 @@
 <?php
-namespace Londo;
+namespace QTool\Api\Libs;
 
 class Hamster {
 
@@ -88,35 +88,28 @@ class Hamster {
     }
 
     public function chunk($start, $end, $func) {
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $this->url);
-        curl_setopt($ch, CURLOPT_RANGE, $start.'-'.$end);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-        curl_setopt($ch, CURLOPT_BINARYTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_WRITEFUNCTION, $func);
-        
-        $result = curl_exec($ch);
-        
-        curl_close($ch);
+        (new Scrapper())->get($this->url, array(
+            'redirect' => TRUE,
+            'insecure' => TRUE,
+            'binary' => TRUE,
+            'writer' => $func,
+            'range' => $start.'-'.$end
+        ));
     }
 
     public function size() {
-        $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $this->url);
-        // curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36");
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_HEADER, TRUE);
-        curl_setopt($ch, CURLOPT_NOBODY, TRUE);
-        curl_exec($ch);
+        $scrapper = new Scrapper();
         
-        $size = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+        $scrapper->get($this->url, array(
+            'binary' => TRUE,
+            'redirect' => TRUE,
+            'insecure' => TRUE,
+            'header' => TRUE,
+            'body' => FALSE
+        ));
+
+        $size = $scrapper->info('download_content_length');
         return intval($size);
     }
 

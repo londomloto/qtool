@@ -1,4 +1,5 @@
 <?php
+namespace QTool\Api\Modules;
 
 class Assets {
 

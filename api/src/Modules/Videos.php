@@ -1,9 +1,16 @@
 <?php
-use Londo\Media;
-use Londo\Grabber;
-use Londo\Proxy;
+namespace QTool\Api\Modules;
 
-class Videos {
+use QTool\Api\Libs\Media;
+use QTool\Api\Libs\Proxy;
+use QTool\Api\Libs\Hamster;
+use QTool\Api\Libs\Scrapper;
+
+class Videos extends \QTool\Api\Libs\Module {
+
+    public function test() {
+        
+    }
 
     public function index() {
 
@@ -22,10 +29,10 @@ class Videos {
                 
                 break;
             case 'xvideos':
-                $data = self::__fetch('http://www.xvideos.com/?k=cuckold', $opts);
+                $data = $this->_fetch('http://www.xvideos.com/?k=cuckold', $opts);
                 break;
             case 'xhamster':
-                $data = self::__fetch('https://xhamster.com/categories/cuckold', $opts);
+                $data = $this->_fetch('https://xhamster.com/categories/cuckold', $opts);
                 break;
             case 'local':
             default:
@@ -33,9 +40,9 @@ class Videos {
                 $base = VIDEO_BASEPATH;
                 $data = array();
 
-                $scan = new RecursiveIteratorIterator(
-                    new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS),
-                    RecursiveIteratorIterator::SELF_FIRST
+                $scan = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::SELF_FIRST
                 );
 
                 foreach($scan as $item) {
@@ -78,7 +85,7 @@ class Videos {
             $maxw = isset($_GET['maxw']) ? (int)$_GET['maxw'] : 168;
             $maxh = isset($_GET['maxh']) ? (int)$_GET['maxh'] : 94;
 
-            Grabber::crop($poster, $maxw, $maxh);
+            $this->loader->create('image', $poster)->crop($maxw, $maxh);
         }
     }
 
@@ -87,7 +94,7 @@ class Videos {
         $data['path'] = urldecode($data['path']);
 
         if ($data['load'] === FALSE) {
-            $data = self::__load($data);
+            $data = $this->_load($data);
         }
 
         return array(
@@ -100,7 +107,7 @@ class Videos {
         
         switch($_GET['provider']) {
             case 'xhamster':
-                $video = new \Londo\Hamster($path);
+                $video = new Hamster($path);
                 $video->stream();
                 break;
             case 'youtube':
@@ -116,7 +123,7 @@ class Videos {
 
                 $path = implode('&', $path);
                 
-                $video = new \Londo\Hamster($path);
+                $video = new Hamster($path);
                 $video->stream();
 
                 break;
@@ -126,13 +133,6 @@ class Videos {
                 $video = new Media($base);
                 $video->stream();
         }
-    }
-
-    public function test() {
-        // $url = 'http://127.0.0.1/qtool/api/videos/play?path=Cuckolds%2Fxhamster.com_7893485_wife_filled_hubby_filmed_720p.mp4';
-        $url = 'https://xhamster.com/movies/9072382/download/240p?t=1519435083&h=34f24adcb0d92d85fc51358104bb4a9f';
-        $video = new \Londo\Hamster($url);
-        $video->stream();
     }
 
     public function find() {
@@ -151,10 +151,10 @@ class Videos {
 
         switch($provider) {
             case 'xhamster':
-                $data = self::__fetch('https://xhamster.com/search?q=cuckold+'.$term, $opts);
+                $data = $this->_fetch('https://xhamster.com/search?q=cuckold+'.$term, $opts);
                 break;
             case 'xvideos':
-                $data = self::__fetch('http://www.xvideos.com/?k=cuckold+'.$term, $opts);
+                $data = $this->_fetch('http://www.xvideos.com/?k=cuckold+'.$term, $opts);
                 break;
             case 'local':
             default:
@@ -194,13 +194,14 @@ class Videos {
         );
     }
 
-    private static function __load($data) {
+    private function _load($data) {
 
         if ($data['provider'] == 'youtube') {
             $data['load'] = TRUE;
             $data['path'] = 'https://www.youtube.com/embed/'.$data['guid'].'?autoplay=1&disablekb=1&iv_load_policy=3&showinfo=0';
 
-            $info = file_get_contents('https://www.googleapis.com/youtube/v3/videos?id='.$data['guid'].'&key=AIzaSyDCHEBx3OGgnHna2iLC4qtIl5IwL9T50LE&part=contentDetails');
+            $info = (new Scrapper())->get('https://www.googleapis.com/youtube/v3/videos?id='.$data['guid'].'&key=AIzaSyDCHEBx3OGgnHna2iLC4qtIl5IwL9T50LE&part=contentDetails');
+
             try {
 
                 $json = json_decode($info, TRUE);
@@ -272,26 +273,12 @@ class Videos {
                 $data['path'] = $path;
             }*/
         } else {
-            $ch = curl_init();
 
-            curl_setopt($ch, CURLOPT_URL, $data['path']);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); 
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'); 
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-            if ($data['proxy']) {
-                curl_setopt($ch, CURLOPT_REFERER, 'https://www.google.co.jp/');
-            } else {
-                curl_setopt($ch, CURLOPT_REFERER, 'https://www.google.com/');
-            }
-
-            $content = curl_exec($ch);
-            curl_close($ch);
-
+            $content = (new Scrapper())->get($data['path']);
+            
             if ($content) {
                 
-                phpQuery::newDocument($content);
+                \phpQuery::newDocument($content);
 
                 switch($data['provider']) {
                     case 'xhamster':
@@ -329,34 +316,19 @@ class Videos {
             }
         }
 
-        
-
         return $data;
     }
 
-    private static function __fetch($url, $options = array()) {
+    protected function _fetch($url, $options = array()) {
         set_time_limit(0);
 
         if ($options['proxy']) {
-            \Londo\Proxy::connect();
+            Proxy::connect();
         } else {
-            \Londo\Proxy::disconnect();
+            Proxy::disconnect();
         }
 
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); 
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'); 
-
-        if ($options['proxy']) {
-            curl_setopt($ch, CURLOPT_REFERER, 'https://www.google.co.jp/');
-        } else {
-            curl_setopt($ch, CURLOPT_REFERER, 'https://www.google.com/');
-        }
-
-        $content = curl_exec($ch);
-        curl_close($ch);
+        $content = (new Scrapper())->get($url);
 
         $data = array();
 
@@ -364,7 +336,8 @@ class Videos {
 
             $href = parse_url($url);
 
-            phpQuery::newDocument($content);
+            \phpQuery::newDocument($content);
+
             switch($options['provider']) {
                 case 'xhamster':
 

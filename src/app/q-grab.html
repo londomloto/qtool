@@ -51,6 +51,7 @@
             }
         </style>
 
+        <q-ajax id="ajax"></q-ajax>
         <q-screen screen="{{ screen }}"></q-screen>
         <q-session session="{{ session }}"></q-session>
 
@@ -276,14 +277,14 @@
                 let req = xhr.generateRequest();
 
                 req.completes.then(() => {
-                    let res = req.response;
+                    let data = req.response.data;
                     
-                    if (res.images && res.images.length) {
-                        this.__save(res.images, params).then(() => {
+                    if (data.images && data.images.length) {
+                        this.__save(data.images, params).then(() => {
                             this.set('busy', false);
 
-                            if (res.links.length) {
-                                deep.bind(this)(res.links);
+                            if (data.links.length) {
+                                deep.bind(this)(data.links);
                             }
                         });
                     } else {
@@ -318,9 +319,9 @@
                         let req = xhr.generateRequest();
 
                         req.completes.then(() => {
-                            let res = req.response;
-                            if (res.images && res.images.length) {
-                                this.__save(res.images, params).then(() => {
+                            let data = req.response.data;
+                            if (data.images && data.images.length) {
+                                this.__save(data.images, params).then(() => {
                                     deep.bind(this)(links);
                                 });
                             } else {
@@ -349,24 +350,16 @@
                     let path = paths.shift();
 
                     if (path) {
-                        let xhr = document.createElement('iron-ajax');
-
+                        
                         params.url = path;
 
-                        xhr.url = 'api/grabber/save';
-                        xhr.handleAs = 'json';
-                        xhr.method = 'GET';
-                        xhr.params = params;
+                        this.$.ajax.get('/api/grabber/save', params).then(res => {
+                            let data = res.data;
 
-                        let req = xhr.generateRequest();
-
-                        req.completes.then(() => {
-                            let res = req.response;
-
-                            if (res.retry) {
-                                paths.push(res.retry);
-                            } else if (res.thumb) {
-                                this.push('images', res);
+                            if (data.retry) {
+                                paths.push(data.retry);
+                            } else if (data.thumb) {
+                                this.push('images', data);
                             }
 
                             save.bind(this)(paths, params, defer);

@@ -1,5 +1,5 @@
 <?php
-namespace Londo;
+namespace QTool\Api\Libs;
 
 class Proxy {
 

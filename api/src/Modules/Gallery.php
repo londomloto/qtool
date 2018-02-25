@@ -1,16 +1,14 @@
 <?php
+namespace QTool\Api\Modules;
 
-use Londo\Grabber;
-
-class Gallery {
+class Gallery extends \QTool\Api\Libs\Module {
 
     public function index() {
-
         $base = IMAGE_BASEPATH;
 
-        $scan = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+        $scan = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
         );
 
         foreach($scan as $item) {
@@ -34,19 +32,20 @@ class Gallery {
     }
 
     public function items() {
-        $path = urldecode($_GET['path']);
+        $path = urldecode($this->request->get('path'));
         $base = IMAGE_BASEPATH.$path;
         $open = opendir($base);
         
         $data = array();
 
         if ($open) {
-
+            
             while(FALSE !== ($item = readdir($open))) {
                 if ($item != '.' && $item != '..' && $item != 'Thumbs.db') {
+                    $item = urlencode($path.'/'.$item);
                     $data[] = [
-                        'thumb' => 'api/gallery/thumb?path='.urlencode($path.'/'.$item),
-                        'image' => 'api/gallery/image?path='.urlencode($path.'/'.$item)
+                        'thumb' => 'api/gallery/thumb?path='.$item,
+                        'image' => 'api/gallery/image?path='.$item
                     ];
                 }
             }
@@ -60,8 +59,9 @@ class Gallery {
     }
 
     public function slides() {
-        $path = urldecode($_GET['path']);
+        $path = urldecode($this->request->get('path'));
         $base = IMAGE_BASEPATH.$path;
+
         $maxw = $_GET['maxw'];
         $maxh = $_GET['maxh'];
 
@@ -86,7 +86,7 @@ class Gallery {
     }
 
     public function image() {
-        $file = IMAGE_BASEPATH.urldecode($_GET['path']);
+        $file = IMAGE_BASEPATH.urldecode($this->request->get('path'));
 
         $info = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($info, $file);
@@ -103,7 +103,7 @@ class Gallery {
     }
 
     public function thumb() {
-        $file = IMAGE_BASEPATH.urldecode($_GET['path']);
+        $file = IMAGE_BASEPATH.urldecode($this->request->get('path'));
         
         $maxw = isset($_GET['maxw']) ? (int)$_GET['maxw'] : 200;
         $maxh = isset($_GET['maxh']) ? (int)$_GET['maxh'] : 200;
@@ -111,15 +111,15 @@ class Gallery {
         $file = str_replace('\(', '(', $file);
         $file = str_replace('\)', ')', $file);
         
-        Grabber::crop($file, $maxw, $maxh);
+        $this->loader->create('image', $file)->crop($maxw, $maxh);
     }
 
     public function grab() {
         $base = IMAGE_BASEPATH;
 
-        $scan = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+        $scan = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
         );
 
         foreach($scan as $item) {

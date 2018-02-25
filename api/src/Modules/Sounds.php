@@ -1,15 +1,16 @@
 <?php
+namespace QTool\Api\Modules;
 
-use Londo\Media;
+use QTool\Api\Libs\Media;
 
-class Sounds {
+class Sounds extends \QTool\Api\Libs\Module {
 
     public function index() {
         $base = AUDIO_BASEPATH;
 
-        $scan = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+        $scan = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
         );
 
         foreach($scan as $item) {
@@ -35,9 +36,9 @@ class Sounds {
         $path = urldecode($_GET['path']);
         $base = AUDIO_BASEPATH.$path;
 
-        $scan = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+        $scan = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
         );
 
         $data = array();
