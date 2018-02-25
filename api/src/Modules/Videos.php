@@ -9,7 +9,7 @@ use QTool\Api\Libs\Scrapper;
 class Videos extends \QTool\Api\Libs\Module {
 
     public function test() {
-        
+
     }
 
     public function index() {
@@ -40,32 +40,36 @@ class Videos extends \QTool\Api\Libs\Module {
                 $base = VIDEO_BASEPATH;
                 $data = array();
 
-                $scan = new \RecursiveIteratorIterator(
-                    new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
-                    \RecursiveIteratorIterator::SELF_FIRST
-                );
+                if (file_exists($base)) {
+                    $scan = new \RecursiveIteratorIterator(
+                        new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
+                        \RecursiveIteratorIterator::SELF_FIRST
+                    );
 
-                foreach($scan as $item) {
-                    if ( ! $item->isDir()) {
-                        $name = $item->getFilename();
-                        $type = $item->getExtension();
-                        $path = str_replace('\\', '/', $item->getPath());
-                        $path = str_replace($base, '', $path);
+                    foreach($scan as $item) {
+                        if ( ! $item->isDir()) {
+                            $name = $item->getFilename();
+                            $type = $item->getExtension();
+                            $path = str_replace('\\', '/', $item->getPath());
+                            $path = str_replace($base, '', $path);
 
-                        if ($type == 'mp4') {
-                            $path = urlencode($path.'/'.$name);
+                            if ($type == 'mp4') {
+                                $path = urlencode($path.'/'.$name);
 
-                            $data[] = array(
-                                'path' => 'api/videos/play?path='.$path,
-                                'title' => $name,
-                                'type' => 'video/mp4',
-                                'play' => FALSE,
-                                'load' => TRUE,
-                                'poster' => 'api/videos/poster?path='.$path
-                            );
+                                $data[] = array(
+                                    'path' => 'api/videos/play?path='.$path,
+                                    'title' => $name,
+                                    'type' => 'video/mp4',
+                                    'play' => FALSE,
+                                    'load' => TRUE,
+                                    'poster' => 'api/videos/poster?path='.$path
+                                );
+                            }
                         }
                     }
                 }
+
+                
 
         }
 

@@ -7,23 +7,26 @@ class Sounds extends \QTool\Api\Libs\Module {
 
     public function index() {
         $base = AUDIO_BASEPATH;
+        $data = array();
 
-        $scan = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST
-        );
+        if (file_exists($base)) {
+            $scan = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST
+            );
 
-        foreach($scan as $item) {
-            if ($item->isDir()) {
-                $path = $item->getPath().'/'.$item->getFilename();
-                $path = str_replace('\\', '/', $path);
-                $path = str_replace($base, '', $path);
-                $text = ucwords(str_replace(array('\\', '/', '_'), array(' - ', ' - ', ' '), strtolower($path)));
+            foreach($scan as $item) {
+                if ($item->isDir()) {
+                    $path = $item->getPath().'/'.$item->getFilename();
+                    $path = str_replace('\\', '/', $path);
+                    $path = str_replace($base, '', $path);
+                    $text = ucwords(str_replace(array('\\', '/', '_'), array(' - ', ' - ', ' '), strtolower($path)));
 
-                $data[] = array(
-                    'path' => urlencode($path),
-                    'text' => $text
-                );
+                    $data[] = array(
+                        'path' => urlencode($path),
+                        'text' => $text
+                    );
+                }
             }
         }
 
@@ -35,7 +38,7 @@ class Sounds extends \QTool\Api\Libs\Module {
     public function items() {
         $path = urldecode($_GET['path']);
         $base = AUDIO_BASEPATH.$path;
-
+        
         $scan = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::SELF_FIRST
