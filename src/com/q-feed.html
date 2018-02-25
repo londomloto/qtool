@@ -63,7 +63,7 @@
                 if (window.firebase === undefined) {
                     let fb = document.createElement('script');
                     fb.src = 'https://www.gstatic.com/firebasejs/4.10.1/firebase.js';
-                    fb.onload = _ => this.__onFirebaseLoad.bind(this);
+                    fb.onload = this.__onFirebaseLoad.bind(this);
                     document.body.appendChild(fb);
                 }
             }
