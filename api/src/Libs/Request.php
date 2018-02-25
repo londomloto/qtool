@@ -16,11 +16,15 @@ class Request {
         $this->_post = $_POST;
         $this->_body = file_get_contents('php://input');
 
-        if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
+        $this->_method = $_SERVER['REQUEST_METHOD'];
+
+        if ($this->isJsonRequest()) {
             $this->_body = json_decode($this->_body, TRUE);
         }
+    }
 
-        $this->_method = $_SERVER['REQUEST_METHOD'];
+    public function isJsonRequest() {
+        return isset($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] == 'application/json';
     }
 
     public function get($key = NULL, $default = NULL) {
@@ -32,12 +36,12 @@ class Request {
     }
 
     public function post($key = NULL, $default = NULL) {
-        $post = $_SERVER['CONTENT_TYPE'] == 'application/json' ? $this->_body : $this->_post;
+        $post = $this->isJsonRequest() ? $this->_body : $this->_post;
 
         if (is_null($key)) {
             return $post;
         }
-        
+
         return isset($post[$key]) ? $post[$key] : $default;
     }
 
