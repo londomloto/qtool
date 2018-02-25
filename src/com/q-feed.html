@@ -1,6 +1,7 @@
 <dom-module id="q-feed">
     <template>
         <style>
+
             .hbox {
                 @apply --layout-horizontal;
             }
@@ -8,6 +9,7 @@
                 @apply --layout-flex;
             }
             paper-button {
+                color: #fff;
                 background-color: var(--paper-blue-500);
             }
             :host {
@@ -17,6 +19,8 @@
                 box-sizing: border-box;
                 padding: 10px;
                 display: none;
+                background-color: var(--paper-grey-100);
+                font-family: 'Segoe UI', Roboto, Arial, sans-serif;
             }
             :host([opened]) {
                 display: block;
