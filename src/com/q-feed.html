@@ -96,7 +96,7 @@
                         });
                 });
 
-                navigator.serviceWorker.register('../../worker.js').then(reg => {
+                navigator.serviceWorker.register('/qtool/worker.js').then(reg => {
                     messaging.useServiceWorker(reg);
 
                     messaging.getToken().then(currentToken => {
