@@ -37,6 +37,7 @@
     "vegas": "^2.4.0",
     "iron-list": "PolymerElements/iron-list#2.0.1",
     "iron-media-query": "2.0.0",
-    "webcomponentsjs": "^1.1.0"
+    "webcomponentsjs": "^1.1.0",
+    "jquery": "^3.3.1"
   }
 }
