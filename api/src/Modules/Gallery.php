@@ -5,27 +5,30 @@ class Gallery extends \QTool\Api\Libs\Module {
 
     public function index() {
         $base = IMAGE_BASEPATH;
+        $data = array();
 
-        $scan = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST
-        );
+        if (file_exists($base)) {
+            $scan = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($base, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST
+            );
 
-        foreach($scan as $item) {
-            if ($item->isDir()) {
-                $path = $item->getPath().'/'.$item->getFilename();
-                $path = str_replace('\\', '/', $path);
-                $path = str_replace($base, '', $path);
-                $text = ucwords(str_replace(array('\\', '/', '_'), array(' - ', ' - ', ' '), strtolower($path)));
+            foreach($scan as $item) {
+                if ($item->isDir()) {
+                    $path = $item->getPath().'/'.$item->getFilename();
+                    $path = str_replace('\\', '/', $path);
+                    $path = str_replace($base, '', $path);
+                    $text = ucwords(str_replace(array('\\', '/', '_'), array(' - ', ' - ', ' '), strtolower($path)));
 
-                $data[] = array(
-                    'orig' => $path,
-                    'path' => urlencode($path),
-                    'text' => $text
-                );
+                    $data[] = array(
+                        'orig' => $path,
+                        'path' => urlencode($path),
+                        'text' => $text
+                    );
+                }
             }
         }
-
+        
         return array(
             'data' => $data
         );
@@ -39,7 +42,7 @@ class Gallery extends \QTool\Api\Libs\Module {
         $data = array();
 
         if ($open) {
-            
+
             while(FALSE !== ($item = readdir($open))) {
                 if ($item != '.' && $item != '..' && $item != 'Thumbs.db') {
                     $item = urlencode($path.'/'.$item);
