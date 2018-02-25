@@ -1,0 +1,178 @@
+<dom-module id="q-font">
+    <template>
+        <style include="q-styles">
+            :host {
+                display: block;
+                position: relative;
+                z-index: 0;
+                height: 100vh;
+            }
+            #layout .secondary-toolbar paper-input {
+                --paper-input-container-input: {
+                    font-size: 20px;
+                    font-weight: 300;
+                };
+                --paper-input-container-underline: {
+                    display: none;
+                };
+            }
+
+            section[name=home] {
+                padding: 0;
+            }
+            .code {
+                display: block;
+                box-sizing: border-box;
+                width: 100%;
+                height: calc(100vh - 128px);
+                border: none;
+                resize: none;
+                outline: none;
+                background-color: #333;
+                color: #fff;
+                font-family: Consolas, Monaco, 'Courier New', Courier;
+                padding: 20px;
+            }
+        </style>
+
+        <q-ajax id="ajax"></q-ajax>
+
+        <app-header-layout id="layout" has-scrolling-region>
+            <app-header slot="header" fixed condenses effects="waterfall">
+                <app-toolbar class="primary-toolbar">
+                    <slot name="drawer-toggle"></slot>
+                    <div main-title>Webfont</div>
+                    <paper-icon-button icon="settings" on-tap="__onSetupTap"></paper-icon-button>
+                </app-toolbar>
+                <app-toolbar class="secondary-toolbar" hidden$="[[ !__home ]]">
+                    <div>
+                        <paper-input value="{{ options.source }}" placeholder="Type webfont url here..." no-label-float></paper-input>
+                    </div>
+                    <paper-icon-button hidden$="[[ busy ]]" on-tap="__onGrabTap" icon="send"></paper-icon-button>
+                    <paper-spinner hidden$="[[ !busy ]]" active></paper-spinner>
+                </app-toolbar>
+            </app-header>
+            <iron-pages selected="[[ section ]]" attr-for-selected="name">
+                <section name="home">
+                    <textarea class="code">[[ code ]]</textarea>
+                </section>
+                <section name="options">
+                    <paper-input value="{{ options.bundle }}" label="Webfont bundle name"></paper-input>
+                </section>
+            </iron-pages>
+        </app-header-layout>
+        <paper-fab hidden$="[[ __home ]]" on-tap="__onBackTap" class="nav-back" icon="arrow-back"></paper-fab>
+    </template>
+    <script>
+        class QFont extends Polymer.Element {
+
+            static get is() {
+                return 'q-font';
+            }
+
+            static get properties() {
+                return {
+                    accent: { type: String },
+                    section: { type: String, value: 'home' },
+                    options: { 
+                        type: Object, 
+                        value: () => ({
+                            source: 'https://fonts.googleapis.com/css?family=Roboto',
+                            bundle: ''
+                        }) 
+                    },
+                    code: { type: String, value: '' },
+                    busy: { type: Boolean, value: false, reflectToAttribute: true }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '__sectionChanged(section)',
+                    '__accentChanged(accent)'
+                ];
+            }
+
+            constructor() {
+                super();
+                this.__home = true;
+            }
+
+            __accentChanged(accent) {
+                this.updateStyles({
+                    '--accent': 'var(--paper-' + accent + '-500)'
+                });
+            }
+
+            __sectionChanged(section) {
+                if (section == 'home') {
+                    this.set('__home', true);
+                } else {
+                    this.set('__home', false);
+                }
+
+                this.__resizing = Polymer.Debouncer.debounce(
+                    this.__resizing,
+                    Polymer.Async.timeOut.after(10),
+                    () => {
+                        this.$.layout.notifyResize();
+                    }
+                );
+
+                Polymer.enqueueDebouncer(this.__resizing);
+            }
+
+            __sectionIsHome(section) {
+                return section == 'home';
+            }
+
+            __onGrabTap() {
+                this.set('code', '');
+
+                let options = this.options;
+
+                if ( ! options.source) {
+                    return;
+                }
+
+                if ( ! options.bundle) {
+                    let parsed = options.source.match(/family=([^ ]+)/);
+                    if (parsed) {
+                        options.bundle = parsed[1];
+                    }
+                }
+                
+                this.set('busy', true);
+
+                this.$.ajax.get('/api/fonts/grab', {
+                    source: options.source,
+                    bundle: options.bundle
+                }).then(res => {
+                    if (res.success) {
+                        this.set('code', res.data.content);
+
+                        let link = document.createElement('a');
+
+                        link.href = res.data.archive;
+                        link.target = '_blank';
+
+                        document.body.appendChild(link);
+                        link.click();
+                    }
+                    this.set('busy', false);
+                });
+
+            }
+
+            __onSetupTap() {
+                this.set('section', 'options');
+            }
+
+            __onBackTap() {
+                this.set('section', 'home');
+            }
+        }
+
+        customElements.define(QFont.is, QFont);
+    </script>
+</dom-module>

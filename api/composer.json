@@ -1,0 +1,15 @@
+{
+	"require": {
+		"zomberg/phpquery": "dev-master",
+		"php-ffmpeg/php-ffmpeg": "^0.11.1"
+	},
+
+	"repositories" : [
+	    {
+	        "type": "path",
+	        "url": "packages/londo"
+	    }
+	],
+
+	"minimum-stability": "dev"
+}

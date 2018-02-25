@@ -1,0 +1,205 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="../vendor/jquery/jquery.html">
+<link rel="import" href="../vendor/lightgallery/lightgallery.html">
+
+<link rel="import" href="com/q-pages.html">
+<link rel="import" href="com/q-session.html">
+<link rel="import" href="com/q-ajax.html">
+
+<link rel="import" href="app/q-styles.html">
+
+<dom-module id="q-tool">
+    <template>
+        <style include="q-styles">
+            #drawer {
+                @apply --shadow-elevation-2dp;
+            }
+            #drawer app-toolbar {
+                color: #fff;
+                background-color: var(--accent-dk, var(--paper-purple-700));
+            }
+            #drawer app-header-layout {
+                background-color: var(--paper-grey-100);
+            }
+            #drawer [main-title] {
+                font-weight: 300;
+                font-size: 40px;
+                font-family: var(--font-family) !important;
+                position: relative;
+                text-align: center;
+            }
+            #drawer [main-title]::before {
+                content: ' ';
+                display: block;
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 22px;
+                height: 1px;
+                border-top: 1px solid #fff;
+                z-index: 1;
+            }
+            #drawer [main-title] > span {
+                background-color: var(--accent-dk, var(--paper-purple-700));
+                position: relative;
+                z-index: 2;
+            }
+            #layout:not([narrow]) [drawer-toggle] {
+                display: none;
+            }
+            .menu {
+                background-color: transparent;
+            }
+            .menu paper-item {
+                color: #666;
+                font-family: var(--font-family) !important;
+            }
+            .menu paper-item > * {
+                pointer-events: none;
+            }
+            .menu iron-icon {
+                margin-right: 10px;
+            }
+            
+        </style>
+
+        <q-session session="{{ session }}"></q-session>
+
+        <app-drawer-layout id="layout" fullbleed>
+            <app-drawer id="drawer" slot="drawer">
+                <app-header-layout has-scrolling-region>
+                    <app-header slot="header">
+                        <app-toolbar class="toolbar-side">
+                            <div main-title><span>&#9825;</span></div>
+                        </app-toolbar>
+                    </app-header>   
+                    <paper-listbox class="menu" selected="{{ module }}" attr-for-selected="name">
+                        <template is="dom-repeat" items="[[ menus ]]">
+                            <paper-item name="[[ item.name ]]">
+                                <iron-icon icon="[[ item.icon ]]"></iron-icon>
+                                <paper-item-body>[[ item.text ]]</paper-item-body>
+                            </paper-item>    
+                        </template>
+                    </paper-listbox>
+                </app-header-layout>
+            </app-drawer>
+
+            <q-pages id="pages" attr-for-selected="name" selected="[[ module ]]" lazy-load>
+                <q-grab import="app/q-grab.html" name="q-grab" accent="[[ accent ]]">
+                    <paper-icon-button icon="menu" slot="drawer-toggle" drawer-toggle></paper-icon-button>
+                </q-grab>
+                <q-font import="app/q-font.html" name="q-font" accent="[[ accent ]]">
+                    <paper-icon-button icon="menu" slot="drawer-toggle" drawer-toggle></paper-icon-button>
+                </q-font>
+                <q-gallery import="app/q-gallery.html" name="q-gallery" accent="[[ accent ]]">
+                    <paper-icon-button icon="menu" slot="drawer-toggle" drawer-toggle></paper-icon-button>
+                </q-gallery>
+                <q-player import="app/q-player.html" name="q-player" accent="[[ accent ]]">
+                    <paper-icon-button icon="menu" slot="drawer-toggle" drawer-toggle></paper-icon-button>
+                </q-player>
+                <q-tube import="app/q-tube.html" name="q-tube" accent="[[ accent ]]">
+                    <paper-icon-button icon="menu" slot="drawer-toggle" drawer-toggle></paper-icon-button>
+                </q-tube>
+            </q-pages>
+            
+        </app-drawer-layout>
+
+    </template>
+    <script>
+        class QTool extends Polymer.Element {
+            static get is() {
+                return 'q-tool';
+            }
+
+            static get properties() {
+                return {
+                    module: { type: String },
+                    menus: {
+                        type: Array,
+                        value: () => ([
+                            { name: 'q-grab', text: 'Grabber', icon: 'social:public', accent: 'purple' },
+                            { name: 'q-player', text: 'Player', icon: 'av:queue-music', accent: 'pink'},
+                            { name: 'q-gallery', text: 'Gallery', icon: 'image:camera', accent: 'blue' },
+                            { name: 'q-tube', text: 'Video', icon: 'av:play-circle-outline', accent: 'red' },
+                            { name: 'q-font', text: 'Webfont', icon: 'font-download', accent: 'teal' }
+                        ])
+                    },
+                    accent: { type: String }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '__accentChanged(accent)',
+                    '__moduleChanged(module)'
+                ];
+            }
+
+            ready() {
+                super.ready();
+
+                if (this.session.last_module) {
+                    this.set('module', this.session.last_module);
+                } else {
+                    this.set('module', 'q-grab');
+                }
+            }
+
+            __accentChanged(accent) {
+                let meta = document.querySelector('meta[name=theme-color]'),
+                    dark = '--paper-' + accent + '-700',
+                    hexa = getComputedStyle(document.documentElement).getPropertyValue(dark);
+
+                if (hexa) {
+                    meta.content = hexa;
+                }
+
+                this.updateStyles({
+                    '--accent-dk': 'var(' + dark + ')'
+                });
+            }
+
+            __moduleChanged(module) {
+                if (this.$.layout.narrow) {
+                    this.$.drawer.close();
+                }
+
+                let menu = (this.menus || []).find(e => {
+                    return e.name == module;
+                });
+
+                if (menu && menu.accent) {
+                    this.set('accent', menu.accent);
+                }
+
+                this.set('session.last_module', module);
+            }
+            
+        }
+        customElements.define(QTool.is, QTool);
+    </script>
+</dom-module>

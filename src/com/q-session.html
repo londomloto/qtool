@@ -1,0 +1,56 @@
+<dom-module id="q-session">
+    <script>
+        class QSession extends Polymer.Element {
+            static get is() {
+                return 'q-session';
+            }
+
+            static get properties() {
+                return {
+                    session: { type: Object, notify: true }
+                }
+            }
+
+            static get observers() {
+                return [
+                    '__sessionChanged(session.*)'
+                ];
+            }
+
+            ready() {
+                super.ready();
+                this.__initialize();
+                
+                this.__silent = true;
+                this.set('session', this.__load());
+                this.__silent = false;
+            }   
+
+            __initialize() {
+                let session = localStorage.getItem('q-tool');
+                if ( ! session) {
+                    localStorage.setItem('q-tool', '{}');
+                }
+            }
+
+            __load() {
+                let data = localStorage.getItem('q-tool');
+                let json = JSON.parse(data);
+                return json;
+            }
+
+            __save() {
+                let data = JSON.stringify(this.session);
+                localStorage.setItem('q-tool', data);
+            }
+
+            __sessionChanged(changed) {
+                if (this.__silent) {
+                    return;
+                }
+                this.__save();
+            }
+        }
+        customElements.define(QSession.is, QSession);
+    </script>
+</dom-module>

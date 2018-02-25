@@ -1,0 +1,230 @@
+<link rel="import" href="../../bower_components/iron-media-query/iron-media-query.html">
+<link rel="import" href="../../bower_components/app-layout/app-grid/app-grid-style.html">
+<link rel="import" href="../com/q-screen.html">
+
+<dom-module id="q-gallery">
+    <template>
+        <style include="app-grid-style"></style>
+        <style include="q-styles">
+            :host {
+                display: block;
+                position: relative;
+                z-index: 0;
+                height: 100vh;
+            }
+            section[name=home],
+            section[name=gallery] {
+                padding: 0;
+            }
+            section[name=gallery] {
+                height: calc(100% - 64px);
+            }
+            paper-listbox paper-item {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            paper-listbox paper-item + paper-item {
+                border-top: 1px solid #dfdfdf;
+            }
+            .layout {
+                --app-grid-columns: 5;
+                --app-grid-item-height: 50%;
+                --app-grid-expandible-item-columns: 0;
+            }
+            .layout.sm {
+                --app-grid-columns: 2;
+            }
+            .layout.md,
+            .layout.lg {
+                --app-grid-columns: 3;
+            }
+            paper-card {
+                border-radius: 0;
+                box-shadow: none;
+                margin: 0;
+                display: block;
+                cursor: pointer;
+            }
+            .spinner {
+                text-align: center;
+                padding: 15px;
+            }
+            .thumb .card-content {
+                display: none;
+            }
+            [hidden] {
+                display: none;
+            }
+        </style>
+
+        <q-ajax id="ajax"></q-ajax>
+        <q-screen screen="{{ screen }}"></q-screen>
+
+        <app-header-layout class$="layout [[ screen ]]" id="layout" has-scrolling-region>
+            <app-header slot="header" fixed condenses effects="waterfall">
+                <app-toolbar class="primary-toolbar">
+                    <slot name="drawer-toggle"></slot>
+                    <div main-title>Gallery</div>
+                    <paper-icon-button icon="settings" on-tap="__onSetupTap"></paper-icon-button>
+                </app-toolbar>
+            </app-header>
+            <iron-pages selected="[[ section ]]" attr-for-selected="name">
+                <section name="home">
+                    <div class="spinner"  hidden$="[[ !busy ]]">
+                        <paper-spinner active></paper-spinner>
+                    </div>
+                    <paper-listbox attr-for-selected="path">
+                        <template is="dom-repeat" items="[[ gallery ]]">
+                            <paper-item on-tap="__onGalleryItemTap">[[ item.text ]]</paper-item>
+                        </template>
+                    </paper-listbox>
+                </section>
+                <section name="gallery">
+                    <div class="app-grid">
+                        <template is="dom-repeat" items="[[ images ]]" on-dom-change="__onGalleryChange">
+                            <paper-card 
+                                class="thumb" 
+                                data-src$="[[ item.image ]]" 
+                                image$="[[ item.thumb ]]" 
+                                on-clickx="__onImageTap">
+                                <div class="card-content">
+                                    <img src$="[[ item.thumb ]]">
+                                </div>
+                            </paper-card>
+                        </template>    
+                    </div>
+                </section>
+                <section name="options">
+                    
+                </section>
+            </iron-pages>
+        </app-header-layout>
+        <paper-fab hidden$="[[ __home ]]" on-tap="__onBackTap" class="nav-back" icon="arrow-back"></paper-fab>
+    </template>
+    <script>
+        class QGallery extends Polymer.Element {
+            static get is() {
+                return 'q-gallery';
+            }
+
+            static get properties() {
+                return {
+                    accent: { type: String },
+                    section: { type: String, value: 'home' },
+                    options: { type: Object, value: () => ({}) },
+                    gallery: { type: Array, value: () => ([]) },
+                    images: { type: Array, value: () => ([]) },
+                    busy: { type: Boolean, value: false, reflectToAttribute: true }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '__sectionChanged(section)',
+                    '__accentChanged(accent)'
+                ];
+            }
+
+            constructor() {
+                super();
+                this.__home = true;
+                this.__navigations = [];
+            }
+
+            ready() {
+                super.ready();
+                this.__loadGallery();
+            }
+
+            __accentChanged(accent) {
+                this.updateStyles({
+                    '--accent': 'var(--paper-' + accent + '-500)'
+                });
+            }
+
+            __sectionChanged(section) {
+                if (section == 'home') {
+                    this.set('__home', true);
+                } else {
+                    this.set('__home', false);
+                }
+
+                this.__navigations.push(section);
+
+                if (this.__navigations.length > 5) {
+                    this.__navigations.shift();
+                }
+
+                this.__resizing = Polymer.Debouncer.debounce(
+                    this.__resizing,
+                    Polymer.Async.timeOut.after(10),
+                    () => {
+                        this.$.layout.notifyResize();
+                    }
+                );
+
+                Polymer.enqueueDebouncer(this.__resizing);
+            }
+
+            __sectionIsHome(section) {
+                return section == 'home';
+            }
+
+            __loadGallery() {
+                this.set('busy', true);
+                this.$.ajax.get('/api/gallery').then(res => {
+                    this.set('gallery', res.data);
+                    this.set('busy', false);
+                });
+            }
+
+            __renderGallery(path) {
+                this.$.ajax.get('/api/gallery/items', { path: path }).then(res => {
+                    this.set('images', res.data);
+                });
+            }
+
+            __onGalleryChange() {
+                let context = $(this.shadowRoot.querySelector('section[name="gallery"]'));
+
+                if (context.data('lightGallery')) {
+                    context.data('lightGallery').destroy(true);
+                }
+
+                let d = setTimeout(() => {
+                    clearTimeout(d);
+                    d = null;
+                    
+                    context.lightGallery({
+                        selectWithin: context,
+                        selector: '.thumb',
+                        thumbnail: false
+                    });
+
+                }, 1);
+            }
+
+            __onGalleryItemTap(e) {
+                this.set('section', 'gallery');
+                this.__renderGallery(e.model.item.path);
+            }
+
+            __onSetupTap() {
+                this.set('section', 'options');
+            }
+
+            __onBackTap() {
+                this.__navigations.pop();
+                let section = this.__navigations.pop();
+
+                if (section) {
+                    this.set('section', section);
+                } else {
+                    this.set('section', 'home');
+                }
+            }
+        }
+        customElements.define(QGallery.is, QGallery);
+    </script>
+</dom-module>

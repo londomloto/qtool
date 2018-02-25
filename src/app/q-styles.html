@@ -1,0 +1,64 @@
+<dom-module id="q-styles">
+    <template>
+        <style>
+            :host {
+                --font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            }
+            paper-item {
+                cursor: pointer;
+                font-weight: normal;
+            }
+            paper-checkbox {
+                margin: 16px 16px 16px 0;
+            }
+            paper-dropdown-menu {
+                --paper-menu-button-content: {
+                    min-width: 440px;
+                };
+            }
+            paper-input,
+            paper-dropdown-menu {
+                display: block;
+                --paper-input-container-label: {
+                    font-family: var(--font-family) !important;
+                };
+                --paper-input-container-input: {
+                    font-family: var(--font-family)  !important;
+                }
+            }
+            paper-button,
+            paper-item,
+            paper-checkbox {
+                font-family: var(--font-family);
+            }
+            #layout .primary-toolbar {
+                color: #fff;
+                background-color: var(--accent, var(--paper-purple-500));
+            }
+            #layout .secondary-toolbar {
+                background-color: var(--paper-grey-100);
+            }
+            #layout .secondary-toolbar > div {
+                @apply --layout-flex;
+            }
+            #layout [main-title],
+            #layout .main-title {
+                font-weight: 300;
+                font-family: var(--font-family) !important;
+                padding-right: 15px;
+            }
+            section {
+                padding: 1.5em;
+            }
+            
+            .nav-back {
+                position: fixed;
+                right: 20px;
+                bottom: 80px;
+            }
+            [hidden] {
+                display: none;
+            }
+        </style>
+    </template>
+</dom-module>

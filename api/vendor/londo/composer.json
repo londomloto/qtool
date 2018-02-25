@@ -1,0 +1,10 @@
+{
+	"name": "londo",
+
+	"autoload": {
+        "psr-4": {
+        	"Londo\\": "src/"
+        }
+    }
+    
+}

@@ -1,0 +1,45 @@
+<link rel="import" href="../../bower_components/iron-media-query/iron-media-query.html">
+
+<dom-module id="q-screen">
+    <template>
+        
+        <!-- small device (landscape phone) -->
+        <iron-media-query query="(min-width: 576px)" query-matches="{{ sm }}"></iron-media-query>
+
+        <!-- medium device (tablet) -->
+        <iron-media-query query="(min-width: 768px)" query-matches="{{ md }}"></iron-media-query>
+    
+        <!-- large device (desktop) -->
+        <iron-media-query query="(min-width: 992px)" query-matches="{{ lg }}"></iron-media-query>
+    
+        <!-- extra large device (desktop) -->
+        <iron-media-query query="(min-width: 1200px)" query-matches="{{ xl }}"></iron-media-query>
+
+    </template>
+    <script>
+        class QScreen extends Polymer.Element {
+            static get is() {
+                return 'q-screen';
+            }
+            static get properties() {
+                return {
+                    screen: { type: String, value: '', notify: true }
+                };
+            }
+            static get observers() {
+                return [
+                    '__screenChanged(sm, md, lg, xl)'
+                ];
+            }
+            ready() {
+                super.ready();
+                this._ensureAttribute('hidden', true);
+            }
+            __screenChanged(sm, md, lg, xl) {
+                let screen = xl ? 'xl' : (lg ? 'lg' : (md ? 'md' : 'sm'));
+                this.set('screen', screen);
+            }
+        }
+        customElements.define(QScreen.is, QScreen);
+    </script>
+</dom-module>

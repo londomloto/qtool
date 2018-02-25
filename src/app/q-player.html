@@ -1,0 +1,513 @@
+<link rel="import" href="../../vendor/vegas/vegas-style.html">
+<link rel="import" href="../../vendor/vegas/vegas.html">
+<link rel="import" href="../com/q-visualizer.html">
+<link rel="import" href="../com/q-screen.html">
+
+<dom-module id="q-player">
+    <template>
+        <style include="vegas-style"></style>
+        <style include="q-styles">
+            :host {
+                display: block;
+                position: relative;
+                z-index: 0;
+                height: 100vh;
+                font-family: var(--font-family);
+            }
+            .workspace {
+                padding: 0;
+                height: calc(100vh - 64px);
+                @apply --layout-vertical;
+            }
+
+            .workspace > .flex {
+                display: block;
+                @apply --layout-flex;
+            }
+            section[name=home],
+            section[name=play],
+            section[name=playlist] {
+                padding: 0;
+            }
+            section[name=play] {
+                height: 100%;
+            }
+            #preview {
+                height: 100%;
+                background-color: #000000;
+            }
+            paper-listbox paper-item {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            paper-listbox paper-item + paper-item {
+                border-top: 1px solid #dfdfdf;
+            }
+            paper-checkbox {
+                margin: 16px 16px 16px 0;
+            }
+            paper-icon-button[disabled] {
+                color: var(--paper-grey-400);
+            }
+            .hbox {
+                @apply --layout-horizontal;
+            }
+            .hbox.fit {
+                height: 100%;
+            }
+            .hbox > .flex {
+                @apply --layout-flex;
+            }
+            .vbox {
+                height: 100%;
+                @apply --layout-vertical;
+            }
+            .vbox > .flex {
+                @apply --layout-flex;
+            }
+            .scrollable {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            .soundtrack-container {
+                padding: 12px;
+                background-color: #fafafa;
+                position: relative;
+                z-index: 999999;
+                box-sizing: border-box;
+            }
+            .soundtrack-container.ff {
+                background-color: #292929;
+            }
+            .soundtrack-container.ff .av-audio {
+                background-color: #666;
+            }
+            .av-tool {
+                width: 40px;
+                position: relative;
+            }
+            .av-tool paper-icon-button {
+                color: #5a5a5a;
+                position: absolute;
+                top: 50%;
+                margin-top: -20px;
+            }
+            .av-tool paper-icon-button[disabled] {
+                color: #dfdfdf;
+            }
+            .soundtrack-container.ff .av-tool paper-icon-button {
+                color: #f4f4f4;
+            }
+            .soundtrack-container.ff .av-tool paper-icon-button[disabled] {
+                color: #444;
+            }
+            #player {
+                display: block;
+                width: 100%;
+                position: relative;
+            }
+
+            #caption {
+                position: absolute;
+                left: 20px;
+                bottom: 80px;
+                font-size: 20px;
+                font-weight: 300;
+                color: #fff;
+            }
+            .playlist-item {
+                position: relative;
+            }
+            .playlist-item div {
+                padding-right: 40px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .playlist-item iron-icon {
+                position: absolute;
+                right: 20px;
+                top: 50%;
+                margin-top: -12px;
+            }
+            .layout.sm .hidden-sm {
+                display: none;
+            }
+            q-visualizer {
+                @apply --layout-flex;
+            }
+        </style>
+
+        <q-ajax id="ajax"></q-ajax>
+        <q-screen screen="{{ screen }}"></q-screen>
+
+        <app-header-layout class$="layout [[ screen ]]" id="layout">
+            <app-header slot="header" fixed>
+                <app-toolbar class="primary-toolbar">
+                    <slot name="drawer-toggle"></slot>
+                    <div class="main-title">Player</div>
+                    <q-visualizer accent="[[ accent ]]" screen="[[ screen ]]" id="visualizer"></q-visualizer>
+                    <paper-icon-button icon="settings" on-tap="__onSetupTap"></paper-icon-button>
+                </app-toolbar>
+            </app-header>
+            <div class="workspace">
+                <iron-pages class="flex scrollable" selected="[[ section ]]" attr-for-selected="name">
+                    <section name="home">
+                        <div style="text-align: center; padding: 1em;" hidden$="[[ !busy ]]">
+                            <paper-spinner active></paper-spinner>
+                        </div>
+                        <paper-listbox>
+                            <template is="dom-repeat" items="[[ gallery ]]">
+                                <paper-item on-tap="__onGalleryItemTap">[[ item.text ]]</paper-item>
+                            </template>
+                        </paper-listbox>
+                    </section>
+                    <section name="play">
+                        <div id="preview"></div>
+                        <div id="caption">[[ soundtrack.text ]]</div>
+                    </section>
+                    <section name="playlist">
+                        <paper-listbox>
+                            <template is="dom-repeat" items="[[ soundtracks ]]">
+                                <paper-item on-tap="__onPlaylistItemTap" class="playlist-item" path="[[ item.path ]]">
+                                    <div>
+                                        <span>[[ item.text ]]</span>
+                                        <iron-icon hidden$="[[ !item.play ]]" icon="av:equalizer"></iron-icon>    
+                                    </div>
+                                </paper-item>
+                            </template>
+                        </paper-listbox>
+                    </section>
+                    <section name="options">
+                        <div style="margin-bottom: 8px;">
+                            <paper-dropdown-menu label="Soundtracks" horizontal-align="left" no-animations>
+                                <paper-listbox slot="dropdown-content"  attr-for-selected="name" selected="{{ options.media }}">
+                                    <template is="dom-repeat" items="[[ sounds ]]">
+                                        <paper-item name="[[ item.path ]]">[[ item.text ]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                        </div>
+                        <paper-checkbox checked="{{ options.cover }}">Display as Cover</paper-checkbox>
+                        <paper-checkbox checked="{{ options.soundtrack }}">Play Soundtrack</paper-checkbox>    
+                    </section>
+
+                </iron-pages>
+                <div class="soundtrack-container" hidden$="[[ !options.soundtrack ]]">
+                    <div class="hbox fit">
+                        <div class="av-tool">
+                            <paper-icon-button disabled$="[[ __audioLoading ]]" on-tap="__onPlaylistTap" icon="view-list"></paper-icon-button>
+                        </div>
+                        <div class="av-tool hidden-sm">
+                            <paper-icon-button disabled$="[[ __audioLoading ]]" on-tap="__onRewindTap" icon="av:fast-rewind"></paper-icon-button>
+                        </div>
+                        <div class="av-tool hidden-sm">
+                            <paper-icon-button disabled$="[[ __audioLoading ]]" on-tap="__onForwardTap" icon="av:fast-forward"></paper-icon-button>
+                        </div>
+                        <div class="av-audio flex">
+                            <audio id="player" controlsList="nodownload" controls></audio>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+        </app-header-layout>
+
+        <paper-fab hidden$="[[ __homeSection ]]" on-tap="__onBackTap" class="nav-back" icon="arrow-back"></paper-fab>
+
+    </template>
+    <script>
+        class QPlayer extends Polymer.Element {
+            static get is() {
+                return 'q-player';
+            }
+
+            static get properties() {
+                return {
+                    accent: { type: String },
+                    section: { type: String, value: 'home' },
+                    options: { 
+                        type: Object, 
+                        value: () => ({
+                            media: 'dangdut',
+                            cover: true,
+                            soundtrack: true
+                        }) 
+                    },
+                    gallery: { type: Array, value: () => ([]) },
+                    images: { type: Array, value: () => ([]) },
+                    sounds: { type: Array, value: () => ([]) },
+                    soundtracks: { type: Array, value: () => ([]) },
+                    soundtrack: { type: Object },
+                    busy: { type: Boolean, value: false, reflectToAttribute: true }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '__sectionChanged(section)',
+                    '__optionsMediaChanged(options.media)',
+                    '__accentChanged(accent)'
+                ];
+            }
+
+            constructor() {
+                super();
+                this.__homeSection = true;
+                this.__audioEndHandler = this.__onAudioEnd.bind(this);
+                this.__audioPlayHandler = this.__onAudioPlay.bind(this);
+                this.__audioCanPlayHandler = this.__onAudioCanPlay.bind(this);
+                this.__audioLoading = true;
+                this.__audioPlayed = false;
+                this.__navigations = [];
+            }
+
+            ready() {
+                super.ready();
+
+                this.__loadSounds();
+                this.__loadGalleries();
+
+                // add class to audio based on browser
+                if (navigator.userAgent.indexOf('Firefox') !== -1) {
+                    this.shadowRoot.querySelector('.soundtrack-container').classList.add('ff');
+                }
+
+                this.$.visualizer.source = this.$.player;
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+
+                this.$.player.addEventListener('canplaythrough', this.__audioCanPlayHandler);
+                this.$.player.addEventListener('playing', this.__audioPlayHandler);
+                this.$.player.addEventListener('ended', this.__audioEndHandler);
+            }
+
+            disconnectedCallback() {
+                this.$.player.removeEventListener('canplaythrough', this.__audioCanPlayHandler);
+                this.$.player.removeEventListener('playing', this.__audioPlayHandler);
+                this.$.player.removeEventListener('ended', this.__audioEndHandler);
+
+                super.disconnectedCallback();
+            }
+
+            __accentChanged(accent) {
+                this.updateStyles({
+                    '--accent': 'var(--paper-' + accent + '-500)'
+                });
+            }
+
+            __loadSounds() {
+                this.$.ajax.get('/api/sounds').then(res => {
+                    this.set('sounds', res.data);
+                });
+            }
+
+            __loadGalleries() {
+                this.set('busy', true);
+
+                this.$.ajax.get('/api/gallery').then(res => {
+                    this.set('busy', false);
+                    this.set('gallery', res.data);
+                });
+            }
+
+            __loadSoundtracks() {
+                if ( ! this.options.media) {
+                    return Promise.resolve();
+                }
+
+                this.set('soundtracks', []);
+
+                return this.$.ajax.get('/api/sounds/items', { path: this.options.media }).then(res => {
+                    this.set('soundtracks', res.data);
+                });
+            }
+
+            __sectionChanged(section) {
+                this.set('__homeSection', section == 'home');
+
+                this.__navigations.push(section);
+
+                if (this.__navigations.length > 5) {
+                    this.__navigations.shift();
+                }
+            }
+
+            __onGalleryItemTap(e) {
+                this.set('section', 'play');
+
+                let size = this.$.preview.getBoundingClientRect();
+
+                this.$.ajax.get('/api/gallery/slides', {
+                    path: e.model.item.path,
+                    maxw: size.width,
+                    maxh: size.height
+                }).then(res => {
+                    let images = res.data;
+
+                    if (this.__vegas) {
+                        $(this.$.preview).vegas('destroy');
+                    }
+
+                    $(this.$.preview).vegas({
+                        slides: images,
+                        cover: this.options.cover,
+                        animation: 'random',
+                        transitionDuration: 4e3,
+                        delay: 1e4,
+                        overlay: true,
+                        shuffle: true
+                    });
+
+                    this.__vegas = true;
+
+                    if (this.options.soundtrack && !this.__audioPlayed) {
+                        this.__playSoundtrack();
+                    }
+                });
+            }
+
+            __optionsMediaChanged(media) {
+                this.__loadSoundtracks().then(() => {
+                    if (this.__audioPlayed) {
+                        this.__playSoundtrack();
+                    }
+                });
+            }
+
+            __playSoundtrack() {
+                let soundtracks = this.soundtracks;
+
+                if (soundtracks.length) {
+                    let index = Math.floor(Math.random() * soundtracks.length);
+                    this.__playAudio(index);
+                }
+            }
+
+            __sectionIsHome(section) {
+                return section == 'home';
+            }
+
+            __onAudioCanPlay() {
+                this.$.player.play();
+            }
+
+            __onSetupTap() {
+                this.set('section', 'options');
+            }
+
+            __onPlaylistTap() {
+                this.set('section', 'playlist');
+            }
+
+            __onAudioPlay() {
+                this.set('__audioPlayed', true);
+                this.set('__audioLoading', false);
+            }
+
+            __onAudioEnd() {
+                this.__playSoundtrack();
+            }
+
+            __audioReady() {
+                let def = {},
+                    pause = function() {
+                        this.$.player.removeEventListener('pause', pause);
+                        def.resolve();
+                    }.bind(this);
+
+                def.promise = new Promise(res => {
+                    def.resolve = res;
+                });
+
+                if ( ! this.$.player.paused) {
+                    this.$.player.addEventListener('pause', pause);
+                    this.$.player.pause();    
+                } else {
+                    def.resolve();
+                }
+
+                return def.promise;
+            }
+
+            __playAudio(index) {
+
+                this.set('__audioLoading', true);
+
+                let soundtrack = this.soundtracks[index];
+
+                this.soundtracks.forEach((s, i) => {
+                    this.set('soundtracks.' + i + '.play', false);
+                });
+
+                this.set('soundtrack', soundtrack);
+                this.set('soundtracks.' + index + '.play', true);
+
+                let source = document.createElement('source');
+
+                source.src = soundtrack.path;
+                source.type = 'audio/mpeg';
+
+                this.__audioReady().then(() => {
+                    this.$.player.querySelectorAll('source').forEach(s => {
+                        s.remove();
+                    });
+
+                    this.$.player.appendChild(source);
+                    this.$.player.load()
+                });
+            }
+
+            __onPlaylistItemTap(e) {
+                this.__playAudio(e.model.index);
+            }
+
+            __onRewindTap() {
+                let soundtracks = this.soundtracks,
+                    soundtrack = this.soundtrack;
+
+                if (soundtracks.length) {
+                    let index = soundtracks.indexOf(soundtrack);
+                    index = index - 1;
+                    
+                    if (index < 0) {
+                        index = 0;
+                    }
+
+                    this.__playAudio(index);
+                }
+            }
+
+            __onForwardTap() {
+                let soundtracks = this.soundtracks,
+                    soundtrack = this.soundtrack;
+
+                if (soundtracks.length) {
+                    let index = soundtracks.indexOf(soundtrack);
+                    index = index + 1;
+                    
+                    if (index >= soundtracks.length) {
+                        index = soundtracks.length - 1;
+                    }
+
+                    this.__playAudio(index);
+                }
+            }
+
+            __onBackTap() {
+                this.__navigations.pop();
+                let section = this.__navigations.pop();
+                if (section) {
+                    this.set('section', section);
+                } else {
+                    this.set('section', 'home');
+                }
+            }
+        }
+        customElements.define(QPlayer.is, QPlayer);
+    </script>
+</dom-module>

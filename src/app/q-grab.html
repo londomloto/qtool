@@ -1,0 +1,385 @@
+<link rel="import" href="../../bower_components/app-layout/app-grid/app-grid-style.html">
+<link rel="import" href="../com/q-screen.html">
+<dom-module id="q-grab">
+    <template>
+        <style include="app-grid-style"></style>
+        <style include="q-styles">
+            :host {
+                display: block;
+                position: relative;
+                z-index: 0;
+                height: 100vh;
+            }
+            
+            #layout .secondary-toolbar paper-input {
+                --paper-input-container-input: {
+                    font-size: 20px;
+                    font-weight: 300;
+                };
+                --paper-input-container-underline: {
+                    display: none;
+                };
+            }
+
+            section[name=home] {
+                padding: 0;
+            }
+
+            .layout {
+                --app-grid-columns: 5;
+                --app-grid-item-height: 50%;
+                --app-grid-expandible-item-columns: 0;
+            }
+            .layout.sm {
+                --app-grid-columns: 2;
+            }
+            .layout.md,
+            .layout.lg {
+                --app-grid-columns: 3;
+            }
+
+            .thumbnail {
+                border-radius: 0;
+                box-shadow: none;
+                margin: 0;
+                display: block;
+                cursor: pointer;
+            }
+            .thumbnail .card-content {
+                padding: 0;
+                display: none;
+            }
+        </style>
+
+        <q-screen screen="{{ screen }}"></q-screen>
+        <q-session session="{{ session }}"></q-session>
+
+        <app-header-layout class$="layout [[ screen ]]" id="layout" has-scrolling-region>
+            <app-header slot="header" fixed condenses effects="waterfall">
+                <app-toolbar class="primary-toolbar">
+                    <slot name="drawer-toggle"></slot>
+                    <div main-title>Grabber</div>
+                    <paper-icon-button on-tap="__onSetupTap" icon="settings"></paper-icon-button>
+                </app-toolbar>
+                <app-toolbar class="secondary-toolbar" hidden$="[[ !__home ]]">
+                    <div>
+                        <paper-input on-change="__onInputURLChange" value="{{ options.url }}" placeholder="Type website address here..." no-label-float></paper-input>
+                    </div>
+                    <paper-icon-button hidden$="[[ busy ]]" on-tap="__onGrabTap" icon="send"></paper-icon-button>
+                    <paper-spinner hidden$="[[ !busy ]]" active></paper-spinner>
+                </app-toolbar>
+            </app-header>
+                
+            <iron-pages id="switcher" selected="[[ section ]]" attr-for-selected="name">
+                <section name="home">
+                    <div class="gallery app-grid">
+                        <template is="dom-repeat" items="[[ images ]]" on-dom-change="__onGalleryChange">
+                            <paper-card 
+                                data-src$="[[ item.image ]]" 
+                                class="thumbnail" 
+                                image$="[[ item.thumb ]]">
+                                <div class="card-content">
+                                    <img src$="[[ item.thumb ]]">
+                                </div>
+                            </paper-card>
+                        </template> 
+                    </div>
+                </section>
+                <section name="options">
+                    <paper-input on-change="__onInputPathChange" value="{{ options.path }}" label="Where to save downloaded images?"></paper-input>
+                    <paper-dropdown-menu horizontal-align="left" label="Or select existing download path..." no-animations>
+                        <paper-listbox attr-for-selected="path" selected="{{ folder }}" slot="dropdown-content">
+                            <template is="dom-repeat" items="[[ folders ]]">
+                                <paper-item path="[[ item.orig ]]">[[ item.orig ]]</paper-item> 
+                            </template>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <paper-checkbox checked="{{ options.deep }}">Try to grab link</paper-checkbox>
+                </section>
+            </iron-pages>
+        </app-header-layout>
+
+        <paper-fab hidden$="[[ __home ]]" on-tap="__onBackTap" class="nav-back" icon="arrow-back"></paper-fab>
+    </template>
+    <script>
+        class QGrab extends Polymer.Element {
+
+            static get is() {
+                return 'q-grab';
+            }
+
+            static get properties() {
+                return {
+                    accent: { type: String },
+                    section: { type: String, value: 'home' },
+                    options: { 
+                        type: Object, 
+                        value: () => ({
+                            url: '',
+                            path: '',
+                            deep: true
+                        }) 
+                    },
+                    folders: { type: Array, value: () => ([]) },
+                    images: { type: Array, value: () => ([]) },
+                    folder: { type: String },
+                    busy: { type: Boolean, value: false, reflectToAttribute: true }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '__sectionChanged(section)',
+                    '__folderChanged(folder)',
+                    '__accentChanged(accent)'
+                ];
+            }
+
+            constructor() {
+                super();
+                this.__home = true;
+            }
+
+            ready() {
+                super.ready();
+                this.__loadFolders();
+
+                if (this.session.grab_url) {
+                    this.set('options.url', this.session.grab_url);
+                }
+
+                if (this.session.grab_path) {
+                    this.set('options.path', this.session.grab_path);
+                }
+            }
+
+            __accentChanged(accent) {
+                this.updateStyles({
+                    '--accent': 'var(--paper-' + accent + '-500)'
+                });
+            }
+
+            __loadFolders() {
+                let xhr = document.createElement('iron-ajax');
+                
+                xhr.url = 'api/gallery';
+                xhr.method = 'GET';
+                xhr.handleAs = 'json';
+
+                let req = xhr.generateRequest();
+
+                req.completes.then(() => {
+                    let data = req.response.data;
+                    data.unshift({ path: '' });
+                    this.set('folders', data);
+                });
+            }
+
+            __sectionChanged(section) {
+                if (section == 'home') {
+                    this.set('__home', true);
+                } else {
+                    this.set('__home', false);
+                }
+
+                this.__resizing = Polymer.Debouncer.debounce(
+                    this.__resizing,
+                    Polymer.Async.timeOut.after(10),
+                    () => {
+                        this.$.layout.notifyResize();
+                    }
+                );
+
+                Polymer.enqueueDebouncer(this.__resizing);
+            }
+
+            __folderChanged(folder) {
+                this.set('options.path', folder);
+                this.set('session.grab_path', folder);
+            }
+
+            __sectionIsHome(section) {
+                return section == 'home';
+            }
+
+            __onGalleryChange() {
+                let context = $(this.shadowRoot.querySelector('.gallery'));
+
+                if (context.data('lightGallery')) {
+                    context.data('lightGallery').destroy(true);
+                }
+
+                let d = setTimeout(() => {
+                    clearTimeout(d);
+                    d = null;
+                    
+                    context.lightGallery({
+                        selectWithin: context,
+                        selector: '.thumbnail'
+                    });
+
+                }, 1);
+            }
+
+            __onInputURLChange(e) {
+                let value = e.target.value;
+                this.set('session.grab_url', value);
+            }
+
+            __onInputPathChange(e) {
+                let value = e.target.value;
+                this.set('session.grab_path', value);
+            }
+
+            __onSetupTap() {
+                this.set('section', 'options');
+            }
+
+            __onBackTap() {
+                this.set('section', 'home');
+            }
+
+            __onGrabTap() {
+                this.__grab();
+            }
+
+            __grab() {
+                this.set('images', []);
+
+                let options = this.options;
+
+                if ( ! options.path) {
+                    return;
+                }
+
+                if ( ! options.url) {
+                    return;
+                }
+
+
+                let xhr = document.createElement('iron-ajax');
+                let params = {};
+
+                options.path = options.path.replace(/\/$/, '') + '/';
+
+                params.url = options.url;
+                params.path = encodeURIComponent(options.path);
+                params.deep = options.deep ? 1 : 0;
+                
+                this.set('busy', true);
+                
+                xhr.url = 'api/grabber/grab';
+                xhr.method = 'GET';
+                xhr.params = params;
+                xhr.handleAs = 'json';
+
+                let req = xhr.generateRequest();
+
+                req.completes.then(() => {
+                    let res = req.response;
+                    
+                    if (res.images && res.images.length) {
+                        this.__save(res.images, params).then(() => {
+                            this.set('busy', false);
+
+                            if (res.links.length) {
+                                deep.bind(this)(res.links);
+                            }
+                        });
+                    } else {
+                        this.set('busy', false);
+                    }
+                });
+
+                function deep(links) {
+                    let link = links.shift();
+                    
+                    this.set('busy', true);
+
+                    if (link) {
+                        this.set('options.url', link);
+
+                        let options = this.options;
+                        options.path = options.path.replace(/\/$/, '') + '/';
+
+                        let params = {
+                            url: link,
+                            path: encodeURIComponent(options.path),
+                            deep: 0
+                        };
+
+                        let xhr = document.createElement('iron-ajax');
+
+                        xhr.url = 'api/grabber/grab';
+                        xhr.method = 'GET';
+                        xhr.params = params;
+                        xhr.handleAs = 'json';
+
+                        let req = xhr.generateRequest();
+
+                        req.completes.then(() => {
+                            let res = req.response;
+                            if (res.images && res.images.length) {
+                                this.__save(res.images, params).then(() => {
+                                    deep.bind(this)(links);
+                                });
+                            } else {
+                                deep.bind(this)(links);
+                            }
+                        });
+
+                    } else {
+                        this.set('busy', false);
+                    }
+                }
+            }
+
+            __save(paths, params) {
+                let defer = {};
+
+                defer.promise = new Promise(res => {
+                    defer.resolve = res;
+                });
+
+                save.bind(this)(paths, params, defer);
+
+                return defer.promise;
+
+                function save(paths, params, defer) {
+                    let path = paths.shift();
+
+                    if (path) {
+                        let xhr = document.createElement('iron-ajax');
+
+                        params.url = path;
+
+                        xhr.url = 'api/grabber/save';
+                        xhr.handleAs = 'json';
+                        xhr.method = 'GET';
+                        xhr.params = params;
+
+                        let req = xhr.generateRequest();
+
+                        req.completes.then(() => {
+                            let res = req.response;
+
+                            if (res.retry) {
+                                paths.push(res.retry);
+                            } else if (res.thumb) {
+                                this.push('images', res);
+                            }
+
+                            save.bind(this)(paths, params, defer);
+                        });
+                    } else {
+                        defer.resolve();
+                    }
+                }
+                
+            }
+
+        }
+
+        customElements.define(QGrab.is, QGrab);
+    </script>
+</dom-module>

@@ -1,0 +1,673 @@
+<link rel="import" href="../../bower_components/iron-media-query/iron-media-query.html">
+<link rel="import" href="../com/q-screen.html">
+
+<dom-module id="q-tube">
+    <template>
+        <style include="q-styles">
+            :host {
+                display: block;
+                position: relative;
+                z-index: 0;
+                height: 100vh;
+                background-color: var(--paper-grey-100);
+                font-family: var(--font-family);
+
+                --wordwrap: {
+                    overflow-wrap: break-word;
+                    word-wrap: break-word;
+                    
+                    -ms-word-break: break-all;
+                        word-break: break-all;
+                        word-break: break-word;
+
+                    -webkit-hyphens: auto;
+                       -moz-hyphens: auto;
+                        -ms-hyphens: auto;
+                            hyphens: auto;
+                };
+            }
+            section[name=home] {
+                padding: 0;
+                height: calc(100vh - 128px);
+            }
+            .padding {
+                padding: 8px;
+            }
+            .hbox {
+                @apply --layout-horizontal;
+            }
+            .hbox > .flex {
+                @apply --layout-flex;
+            }
+            section[name=home] > .hbox {
+                height: calc(100vh - 128px);
+            }
+            .main {
+                background-color: #fff;
+                position: relative;
+                z-index: 2;
+                @apply --shadow-elevation-2dp;
+            }
+            .side {
+                width: 420px;
+                height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            .playlist {
+                padding: 20px;
+                overflow: hidden;
+            }
+            .playlist-item {
+                display: block;
+                box-shadow:0 1px 2px rgba(0,0,0,0.15),0 -1px 0px rgba(0,0,0,0.02);
+                border-radius: 0;
+                cursor: pointer;
+            }
+            .playlist-item .card-content {
+                padding: 0;
+            }
+            .playlist-item .poster {
+                width: 168px;
+                height: 94px;
+                display: block;
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-position: 0 0;
+            }
+            .playlist-item h3 {
+                display: block;
+                color: #333;
+                font-size: 13px;
+                font-weight: 500;
+                margin: 0;
+                height: 45px;
+                overflow: hidden;
+                @apply --wordwrap;
+            }
+            .playlist-item + .playlist-item {
+                margin-top: 10px;
+            }
+            .video-wrapper {
+                background-color: #000;
+                position: relative;
+            }
+            .video-duration {
+                display: block;
+                position: absolute;
+                right: 3px;
+                top: 3px;
+                font-size: 10px;
+                font-weight: bold;
+                color: #777;
+                padding: 1px 3px;
+                background-color: rgba(255,255,255,.8);
+                border-radius: 2px;
+            }
+            #player {
+                display: block;
+                position: relative;
+                width: 100%;
+                height: 400px;
+            }
+            #embed-player {
+                display: block;
+                border: none;
+                width: 100%;
+                height: 400px;
+            }
+            /*video::-webkit-media-controls-panel {
+                display: flex !important;
+                opacity: 1 !important;
+            }*/
+            .layout.small section[name="home"] {
+                height: auto;
+                min-height: calc(100vh - 128px);
+            }
+            .layout.small section[name="home"] > .hbox {
+                min-height: 100%;
+                @apply --layout-vertical;
+            }
+            .layout.small .side {
+                width: 100%;
+                overflow-x: visible;
+                overflow-y: visible;
+                @apply --layout-flex;
+            }
+
+            .layout.small #player {
+                height: 280px;
+            }
+
+            .layout.small #embed-player {
+                height: 280px;
+            }
+
+            .video-wrapper paper-spinner {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                margin-top: -20px;
+                margin-left: -20px;
+                display: none;
+                width: 40px;
+                height: 40px;
+            }
+            :host([busy]) .video-wrapper paper-spinner {
+                display: block;
+            }
+            :host([play]) #player {
+                height: auto;
+            }
+            #layout .secondary-toolbar {
+                background-color: #fff;
+            }
+            #search {
+                --paper-input-container-underline: {
+                    display: none;
+                };
+            }
+            #player[hidden] {
+                display: none;
+            }
+            [hidden] {
+                display: none;
+            }
+        </style>
+
+        <q-ajax id="ajax"></q-ajax>
+        <q-screen screen="{{ screen }}"></q-screen>
+        <q-session session="{{ session }}"></q-session>
+
+        <button id="button-login" hidden on-click="__onGoogleLoginTap"></button>
+
+        <app-header-layout class$="layout [[ __computeClass(screen) ]]" id="layout" has-scrolling-region>
+            <app-header slot="header" fixed condenses effects="waterfall">
+                <app-toolbar class="primary-toolbar">
+                    <slot name="drawer-toggle"></slot>
+                    <div main-title>Video</div>
+                    <paper-icon-button icon="settings" on-tap="__onSetupTap"></paper-icon-button>
+                </app-toolbar>
+                <app-toolbar class="secondary-toolbar" hidden$="[[ !__home ]]">
+                    <div>
+                        <paper-input id="search" value="{{ options.term }}" placeholder$="Search [[ options.provider ]] video here..." no-label-float></paper-input>
+                    </div>
+                    <paper-icon-button hidden$="[[ loading ]]" on-tap="__onSearchTap" icon="search"></paper-icon-button>
+                    <paper-spinner hidden$="[[ !loading ]]" active></paper-spinner>
+                </app-toolbar>
+            </app-header>
+            <iron-pages selected="[[ section ]]" attr-for-selected="name">
+                <section name="home">
+                    <div class="hbox fit">
+                        <div class="main flex">
+                            <div id="wrapper" class="video-wrapper">
+                                <video 
+                                    id="player" 
+                                    preload="none" 
+                                    controlsList="nodownload" 
+                                    hidden$="[[ embed ]]" 
+                                    poster$="[[ __computePoster(video.poster) ]]" 
+                                    controls></video>
+                                <paper-spinner active></paper-spinner>
+                            </div>
+                        </div>
+                        <div class="side">
+                            <div class="playlist">
+                                <template is="dom-repeat" items="[[ videos ]]">
+                                    <paper-card on-click="__onVideoItemTap" class="playlist-item">
+                                        <div class="hbox card-content">
+                                            <div style="position: relative;">
+                                                <div class="poster" style$="background-image: url([[ item.poster ]])"></div>
+                                                <span class="video-duration">[[ item.duration ]]</span>
+                                            </div>
+                                            <div class="flex padding">
+                                                <h3>[[ item.title ]]</h3>
+                                            </div>
+                                        </div>
+                                    </paper-card>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </section>
+                <section name="options">
+                    <paper-dropdown-menu label="Video Provider" horizontal-align="left" no-animations>
+                        <paper-listbox slot="dropdown-content" selected="{{ options.provider }}" attr-for-selected="name">
+                            <template is="dom-repeat" items="[[ providers ]]">
+                                <paper-item name="[[ item.name ]]">[[ item.text ]]</paper-item>    
+                            </template>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                </section>
+            </iron-pages>
+        </app-header-layout>
+        <paper-fab hidden$="[[ __home ]]" on-tap="__onBackTap" class="nav-back" icon="arrow-back"></paper-fab>
+    </template>
+    <script>
+        class QTube extends Polymer.Element {
+            static get is() {
+                return 'q-tube';
+            }
+
+            static get properties() {
+                return {
+                    accent: { type: String },
+                    section: { type: String, value: 'home' },
+                    options: { type: Object, value: _ => ({}) },
+                    videos: { type: Array, value: _ => ([]) },
+                    video: { type: Object, value: () => ({}) },
+                    providers: {
+                        type: Array,
+                        value: _ => ([
+                            { name: 'local', text: 'Local', proxy: false },
+                            { name: 'youtube', text: 'YouTube', proxy: false },
+                            { name: 'xhamster', text: 'XHamster', proxy: true },
+                            { name: 'xvideos', text: 'XVideos', proxy: true }
+                        ])
+                    },
+                    play: { type: Boolean, value: false, reflectToAttribute: true },
+                    busy: { type: Boolean, value: false, reflectToAttribute: true },
+                    loading: { type: Boolean, value: false, reflectToAttribute: true },
+                    embed: { type: Boolean, value: false, reflectToAttribute: true }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '__sectionChanged(section)',
+                    '__accentChanged(accent)',
+                    '__providerChanged(options.provider)'
+                ];
+            }
+
+            constructor() {
+                super();
+                this.__home = true;
+                this.__videoPlayHandler = this.__onVideoPlay.bind(this);
+                this.__videoCanPlayHandler = this.__onVideoCanPlay.bind(this);
+            }
+
+            ready() {
+                super.ready();
+                
+                this.__ready = true;
+
+                if (this.session.video_provider) {
+                    this.set('options.provider', this.session.video_provider);
+                } else {
+                    this.set('options.provider', 'local');
+                }
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.$.player.addEventListener('canplaythrough', this.__videoCanPlayHandler);
+                this.$.player.addEventListener('playing', this.__videoPlayHandler);
+            }
+
+            disconnectedCallback() {
+                this.$.player.removeEventListener('canplaythrough', this.__videoCanPlayHandler);
+                this.$.player.removeEventListener('playing', this.__videoPlayHandler);
+                super.disconnectedCallback();
+            }
+
+            __computePoster(poster) {
+                if ( ! poster || ! this.$.player) {
+                    return '';
+                }
+
+                if (/^http/.test(poster)) {
+                    return poster;
+                } else {
+                    let size = this.$.player.getBoundingClientRect();
+                    return poster + '&maxw=' + size.width + '&maxh=' + size.height;    
+                }
+            }   
+
+            __computeClass(screen) {
+                return screen == 'xl' ? '' : 'small';
+            }
+
+            __providerChanged() {
+                this.set('videos', []);
+
+                if (this.options.provider) {
+
+                    if (this.__ready) {
+                        this.set('section', 'home');
+                    }
+
+                    this.set('session.video_provider', this.options.provider);
+                    this.__loadVideos();
+
+                }
+            }
+
+            __accentChanged(accent) {
+                this.updateStyles({
+                    '--accent': 'var(--paper-' + accent + '-500)'
+                });
+            }
+
+            __sectionChanged(section) {
+                if (section == 'home') {
+                    this.set('__home', true);
+                } else {
+                    this.set('__home', false);
+                }
+
+                this.__resizing = Polymer.Debouncer.debounce(
+                    this.__resizing,
+                    Polymer.Async.timeOut.after(10),
+                    () => {
+                        this.$.layout.notifyResize();
+                    }
+                );
+
+                Polymer.enqueueDebouncer(this.__resizing);
+            }
+
+            __sectionIsHome(section) {
+                return section == 'home';
+            }
+
+            __loadVideos() {
+                let provider = this.providers.find(e => e.name == this.options.provider);
+
+                if (provider.name == 'youtube') {
+                    this.__loadYouTube();
+                } else {
+                    let payload = {
+                        provider: provider.name,
+                        proxy: provider.proxy
+                    };
+
+                    this.set('loading', true);
+
+                    this.$.ajax.get('/api/videos', payload).then(res => {
+                        this.set('videos', res.data);
+                        this.set('loading', false);
+                    });    
+                }
+            }
+
+            __loadYouTube(term = '') {
+                this.set('loading', true);
+                this.set('videos', []);
+                this.__loadYouTubeApi().then(() => {
+                    
+                    gapi.client.request({
+                        method: 'GET',
+                        path: '/youtube/v3/search',
+                        params: {
+                            maxResults: 25,
+                            part: 'snippet',
+                            q: 'cuckold'+ (term ? ' ' + term : ''),
+                            type: 'video'
+                        }
+                    }).execute(res => {
+                        
+                        let data = [];
+                
+                        ( res.items || [] ).forEach(e => {
+                            let guid = e.id.videoId;
+                            let item = {
+                                guid: guid,
+                                load: false,
+                                play: false,
+                                proxy: false,
+                                provider: 'youtube',
+                                title: e.snippet.title,
+                                poster: e.snippet.thumbnails.medium.url,
+                                path: 'https://www.youtube.com/embed/' + guid
+                            };
+
+                            data.push(item);
+                        });
+
+                        this.set('videos', data);
+                        this.set('loading', false);
+
+                        // fetch.bind(this)(this.videos, 0);
+                        
+                    });
+
+                });
+
+                function fetch(items, index) {
+                    let size = items.length;
+                    let item = items[index];
+
+                    if (item) {
+                        
+                        let xhr = new XMLHttpRequest();
+
+                        this.$.ajax.send('GET', 'https://www.googleapis.com/youtube/v3/videos?id='+item.guid+'&key=AIzaSyDCHEBx3OGgnHna2iLC4qtIl5IwL9T50LE&part=contentDetails').then(res => {
+                            
+                            if (res.items && res.items.length) {
+
+                                let duration = res.items[0].contentDetails.duration;
+                                let match = duration.match(/(\d+)/g);
+
+                                if (match) {
+                                    if (match.length == 1) {
+                                        match.unshift('0', '0');
+                                    } else if (match.length == 2) {
+                                        match.unshift('0');
+                                    }
+
+                                    let secInit = +match[2];
+                                    let sec = secInit % 60;
+                                    let secOver = Math.floor(secInit/60);
+
+                                    let minInit = +match[1] + secOver;
+                                    let min = minInit % 60;
+                                    let minOver = Math.floor(minInit/60);
+
+                                    let hours = match[0] + minOver;
+
+                                    if (hours != 0) {
+                                        duration = hours + ':' + min + ':' + sec;
+                                    } else {
+                                        duration = min + ':' + sec;
+                                    }
+
+                                }
+
+                                this.set('videos.' + index + '.duration', duration);
+                            }
+
+                            index++;
+                            fetch.bind(this)(items, index);
+                        });
+                        
+                    }
+                }
+            }
+
+            __loadYouTubeApi() {
+                let def = {};
+                def.promise = new Promise(res => { def.resolve = res; });
+
+                if (window.GoogleAuth === undefined) {
+                    let script = document.createElement('script');
+                    
+                    script.async = true;
+                    script.defer = true;
+                    script.src = 'https://apis.google.com/js/api.js';
+                    script.onload = _ => {
+                        gapi.load('client:auth2', _ => {
+
+                            gapi.client.init({
+                                clientId: '291581890497-98g8ulajoequ35hdtvj0lgc2hr664mi3.apps.googleusercontent.com',
+                                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
+                                scope: 'https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtubepartner'
+                            }).then(_ => {
+                                window.GoogleAuth = gapi.auth2.getAuthInstance();
+                                this.__authYouTube(def);
+                            });
+
+                        });
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    this.__authYouTube(def);
+                }
+
+                return def.promise;
+            }
+
+            __authYouTube(def) {
+                let user = GoogleAuth.currentUser.get(),
+                    authorized = user.hasGrantedScopes('https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtubepartner');
+                
+                if ( ! authorized) {
+                    GoogleAuth.isSignedIn.listen( _ => {
+                        this.__authYouTube(def);
+                    });
+
+                    this.$['button-login'].click();
+                } else {
+                    def.resolve();    
+                }
+            }
+
+            __findVideos() {
+                if ( ! this.options.term) {
+                    return;
+                }
+
+                let provider = this.providers.find(e => e.name == this.options.provider);
+                
+                let payload = {
+                    provider: provider.name,
+                    proxy: provider.proxy,
+                    term: this.options.term
+                };
+
+                this.set('loading', true);
+                this.set('videos', []);
+
+                this.$.ajax.get('/api/videos/find', payload).then(res => {
+                    this.set('videos', res.data);
+                    this.set('loading', false);
+                });
+            }
+
+            __videoReady() {
+                let q = {},
+                    pause = _ =>  {
+                        this.$.player.removeEventListener('pause', pause);
+                        q.resolve();
+                    };
+
+                q.promise = new Promise(res => {
+                    q.resolve = res;
+                });
+
+                if ( ! this.$.player.paused) {
+                    this.$.player.addEventListener('pause', pause);
+                    this.$.player.pause();
+                } else {
+                    q.resolve();
+                }
+
+                return q.promise;
+            }
+
+            __playVideo() {
+                
+                this.$.wrapper.querySelectorAll('iframe').forEach(e => e.remove());
+
+                this.set('embed', false);
+                this.set('play', false);
+                this.set('busy', true);
+
+                this.__videoReady().then(_ => {
+                    let source = document.createElement('source');
+
+                    source.src = this.video.path;
+                    source.type = this.video.type;
+
+                    this.$.player.querySelectorAll('source').forEach(s => {
+                        s.remove();
+                    });
+
+                    this.$.player.appendChild(source);
+                    this.$.player.load();
+                });
+            }
+
+            __embedVideo() {
+                this.set('embed', true);
+
+                this.$.wrapper.querySelectorAll('iframe').forEach(e => e.remove());
+
+                let iframe = document.createElement('iframe');
+
+                iframe.id = 'embed-player';
+                iframe.src = this.video.path;
+                iframe.onload = iframe.onerror = _ => {
+                    this.set('busy', false);
+                };
+
+                this.$.wrapper.appendChild(iframe);
+            }
+
+            __onVideoCanPlay() {
+                this.set('busy', false);
+                this.$.player.play();
+            }
+
+            __onVideoPlay() {
+                this.set('play', true);
+            }
+
+            __onVideoItemTap(e) {
+                let video = e.model.item;
+
+                if (video.load) {
+                    this.set('video', video);
+                    this.__playVideo();
+                } else {
+                    this.set('busy', true);
+
+                    this.$.ajax.get('/api/videos/load', { video: JSON.stringify(video) }).then(res => {
+                        let data = res.data;
+
+                        this.set('video', data);
+                        this.set('videos.' + e.model.index , data);
+                        
+                        if (data.provider == 'youtube') {
+                            this.__embedVideo();
+                        } else {
+                            this.__playVideo();    
+                        }
+                    });
+                }
+            }
+
+            __onGoogleLoginTap() {
+                GoogleAuth.signIn();
+            }
+
+            __onSearchTap() {
+                if (this.options.provider == 'youtube') {
+                    this.__loadYouTube(this.options.term);
+                } else {
+                    this.__findVideos();    
+                }
+            }
+
+            __onSetupTap() {
+                this.set('section', 'options');
+            }
+
+            __onBackTap() {
+                this.set('section', 'home');
+            }
+        }
+        customElements.define(QTube.is, QTube);
+    </script>
+</dom-module>

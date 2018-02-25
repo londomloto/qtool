@@ -1,0 +1,205 @@
+<dom-module id="q-visualizer">
+    <template>
+        <style>
+            :host {
+                display: block;
+                height: 100%;
+            }
+            #container {
+                height: 100%;
+                text-align: center;
+            }
+            #visualizer {
+                display: inline-block;
+            }
+        </style>
+
+        <div id="container">
+            <canvas width="0" id="visualizer"></canvas>     
+        </div>
+        
+    </template>
+    <script>
+
+        navigator.getUserMedia = (
+            navigator.getUserMedia ||
+            navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia ||
+            navigator.msGetUserMedia
+        );
+
+        class QVisualizer extends Polymer.Element {
+            static get is() {
+                return 'q-visualizer';
+            }
+
+            static get properties() {
+                return {
+                    screen: { type: String },
+                    source: { type: Object },
+                    accent: { type: String }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '__sourceChanged(source.*)',
+                    '__screenChanged(screen)'
+                ];
+            }
+
+            constructor() {
+                super();
+
+                this.__anim = null;
+                this.__draw = null;
+
+                this.__play = false;
+                this.__playHandler = this.__onAudioPlay.bind(this);
+            }
+
+            ready() {
+                super.ready();
+                this.__paper = this.$.visualizer.getContext('2d');
+            }
+
+            disconnectedCallback() {
+                if (this.__anim) {
+                    window.cancelAnimationFrame(this.__anim)
+                }
+                
+                if (this.__play) {
+                    this.source.removeEventListener('play', this.__playHandler);
+                }
+
+                super.disconnectedCallback();
+            }
+
+            __setup() {
+                
+                if (navigator.userAgent.match(/Android/)) {
+                    return;
+                }
+
+                this.__audio = new (window.AudioContext || window.webkitAudioContext)();
+                this.__media = this.__audio.createMediaElementSource(this.source);
+                
+                this.__analyser = this.__audio.createAnalyser();
+
+                this.__analyser.minDecibels = -70;
+                this.__analyser.maxDecibels = 0;
+                this.__analyser.smoothingTimeConstant = 0.85;
+
+                this.__distortion = this.__audio.createWaveShaper();
+                this.__gainNode = this.__audio.createGain();
+                this.__biquadFilter = this.__audio.createBiquadFilter();
+                this.__convolver = this.__audio.createConvolver();
+
+
+                this.__media.connect(this.__analyser);
+                this.__analyser.connect(this.__distortion);
+                this.__distortion.connect(this.__biquadFilter);
+                this.__biquadFilter.connect(this.__convolver);
+                this.__convolver.connect(this.__gainNode);
+                this.__gainNode.connect(this.__audio.destination);
+                this.__media.connect(this.__audio.destination);
+
+                this.__visualize();
+                this.__equalize();
+
+                
+            }
+
+            __screenChanged(screen) {
+                if (this.__anim) {
+                    window.cancelAnimationFrame(this.__anim);
+                    this.__visualize();
+                }
+            }
+
+            __sourceChanged() {
+                if ( ! this.__audio) {
+                    this.source.addEventListener('play', this.__playHandler);
+                }
+            }
+
+            __visualize() {
+                
+                let canvas = this.$.visualizer,
+                    container = this.$.container;
+
+                canvas.width = 0;
+
+                let width = container.clientWidth / 2;
+                let height = container.clientHeight;
+
+                canvas.width = width;
+                canvas.height = height;
+
+                let power = Math.floor(Math.log2( width ));
+                let backColor = '#E91E63';
+                let foreColor = '#FFFFFF';
+
+                if (this.accent) {
+                    let styles = getComputedStyle(document.documentElement);
+                    backColor = styles.getPropertyValue('--paper-' + this.accent + '-500');
+                    //foreColor = styles.getPropertyValue('--paper-' + this.accent + '-200');
+                }
+                
+                if (power < 5) {
+                    power = 5;
+                }
+
+                // bars
+                this.__analyser.fftSize = Math.pow(2, power); // 256;
+
+                let bufferLength = this.__analyser.frequencyBinCount;
+                let dataArray = new Uint8Array(bufferLength);
+
+                this.__paper.clearRect(0, 0, width, height);
+
+                this.__draw = _ => {
+                    
+                    this.__analyser.getByteFrequencyData(dataArray);
+
+                    this.__paper.fillStyle = backColor;
+                    this.__paper.fillRect(0, 0, width, height);
+
+                    let barWidth = (width / bufferLength);
+                    let barHeight;
+                    let x = 0;
+
+                    for(let i = 0; i < bufferLength; i++) {
+                        barHeight = dataArray[i];
+
+                        // this.__paper.fillStyle = 'rgb(' + ( barHeight + 100) + ',50,50)';
+                        this.__paper.fillStyle = foreColor;
+                        this.__paper.fillRect(x, height - barHeight / 2, barWidth, barHeight / 2);
+
+                        x += barWidth + 1;
+                    }
+
+                    this.__anim = requestAnimationFrame(this.__draw);
+                };
+
+                this.__draw();
+            }
+
+            __equalize() {
+                this.__distortion.oversample = '4x';
+                this.__biquadFilter.gain.setValueAtTime(0, this.__audio.currentTime);
+                // this.__biquadFilter.gain.value = 0;
+                this.__convolver.buffer = undefined;
+            }
+
+            __onAudioPlay() {
+                if ( ! this.__play) {
+                    this.__play = true;
+                    this.__setup();
+                }
+                
+            }
+        }
+        customElements.define(QVisualizer.is, QVisualizer);
+    </script>
+</dom-module>

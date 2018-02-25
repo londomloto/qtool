@@ -1,0 +1,81 @@
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<dom-module id="kct-pages">
+    <script>
+        class QPages extends customElements.get('iron-pages') {
+            
+            static get is() {
+                return 'q-pages';
+            }
+
+            static get properties() {
+                return {
+                    lazyLoad: { type: Boolean, value: false }
+                }
+            }
+
+            static get observers() {
+                return [
+                    '__selectedItemChanged(selectedItem)'
+                ];
+            }
+
+            constructor() {
+                super();
+                this.__loaded = {};
+            }
+
+            __findHost() {
+                let parent = this.parentNode;
+                let count = 0;
+                let host;
+
+                while(parent) {
+                    if (parent.host) {
+                        host = parent.host;
+                        break;
+                    }
+
+                    parent = parent.parentNode;
+
+                    // avoid overflow
+                    if (count >= 100) break;
+                    count++;
+                }
+
+                return host || parent;
+            }
+
+            __selectedItemChanged(item) {
+                if (item) {
+                    if (this.lazyLoad) {
+                    
+                        if ( ! this.__loaded[this.selected]) {
+                            this.__loaded[this.selected] = true;
+
+                            let path = item.getAttribute('import') || (item.localName + '.html'),
+                                host = this.__findHost();
+                            
+                            if (path && host) {
+                                path = host.resolveUrl && host.resolveUrl(path) || path;
+                                Polymer.importHref(
+                                    path,
+                                    () => {
+                                        this.__resizing = Polymer.Debouncer.debounce(
+                                            this.__resizing,
+                                            Polymer.Async.timeOut.after(300),
+                                            () => {
+                                                this.notifyResize();
+                                            }
+                                        );
+                                        Polymer.enqueueDebouncer(this.__resizing);
+                                    }
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        customElements.define(QPages.is, QPages);
+    </script>
+</dom-module>

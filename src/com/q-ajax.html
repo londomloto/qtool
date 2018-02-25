@@ -1,0 +1,62 @@
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="q-ajax">
+    <script>
+        class QAjax extends Polymer.Element {
+            static get is() {
+                return 'q-ajax';
+            }
+            static get properties() {
+                return {
+                    base: { type: String }
+                };
+            }
+            ready() {
+                super.ready();
+                this._ensureAttribute('hidden', true);
+            }
+            url(path) {
+                let base = this.base;
+                
+                if ( ! base) {
+                    base = document.querySelector('#base').href;
+                    this.set('base', base);
+                }
+                
+                return base + path.replace(/^\//, '');
+            }
+            get(path, data = {}, opts = {}) {
+                let url = this.url(path);
+                return this.send('GET', url, data, opts);
+            }
+            send(verb, path, data = {}, opts) {
+                let xhr = document.createElement('iron-ajax');
+                xhr.url = path;
+
+                if (' GET DELETE '.indexOf(verb) !== -1) {
+                    xhr.params = data;
+                } else {
+                    xhr.body = data;
+                }
+
+                xhr.headers = xhr.headers || {};
+
+                if (verb == 'UPLOAD') {
+                    xhr.method = 'POST';
+                } else {
+                    xhr.headers['Content-Type'] = 'application/json';
+                    xhr.method = verb;
+                }
+
+                xhr.handleAs = 'json';
+
+                let req = xhr.generateRequest();
+
+                return req.completes.then(_ => {
+                    return req.response;
+                });
+            }
+        }
+        customElements.define(QAjax.is, QAjax);
+    </script>
+</dom-module>
