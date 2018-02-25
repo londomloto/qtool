@@ -29,6 +29,10 @@
                 let url = this.url(path);
                 return this.send('GET', url, data, opts);
             }
+            post(path, data = {}, opts = {}) {
+                let url = this.url(path);
+                return this.send('POST', url, data, opts);
+            }
             send(verb, path, data = {}, opts) {
                 let xhr = document.createElement('iron-ajax');
                 xhr.url = path;

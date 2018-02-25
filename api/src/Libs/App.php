@@ -31,6 +31,8 @@ class App {
             $action = 'index';
         }
 
+        $action = Text::camelize($action, '-', FALSE);
+        
         $params = $segments;
         $module = 'QTool\\Api\\Modules\\'.Text::camelize($module, '-', TRUE);
 

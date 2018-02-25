@@ -15,6 +15,11 @@ class Request {
 
         $this->_post = $_POST;
         $this->_body = file_get_contents('php://input');
+
+        if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
+            $this->_body = json_decode($this->_body, TRUE);
+        }
+
         $this->_method = $_SERVER['REQUEST_METHOD'];
     }
 
@@ -27,10 +32,13 @@ class Request {
     }
 
     public function post($key = NULL, $default = NULL) {
+        $post = $_SERVER['CONTENT_TYPE'] == 'application/json' ? $this->_body : $this->_post;
+
         if (is_null($key)) {
-            return $this->_post;
+            return $post;
         }
-        return isset($this->_post[$key]) ? $this->_post[$key] : $default;
+        
+        return isset($post[$key]) ? $post[$key] : $default;
     }
 
 }

@@ -1,0 +1,145 @@
+<dom-module id="q-feed">
+    <template>
+        <style>
+            .hbox {
+                @apply --layout-horizontal;
+            }
+            .flex {
+                @apply --layout-flex;
+            }
+            paper-button {
+                background-color: var(--paper-blue-500);
+            }
+            :host {
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px;
+                display: none;
+            }
+            :host([opened]) {
+                display: block;
+            }
+        </style>
+        <q-ajax id="ajax"></q-ajax>
+        <q-session session="{{ session }}"></q-session>
+
+        <div class="hbox">
+            <div class="flex">
+                Application need your permission
+            </div>
+            <div>
+                <paper-button on-tap="__onRequestPermissionTap">Grant Permission</paper-button>
+            </div>
+        </div>
+
+    </template>
+    <script>
+        class QFeed extends Polymer {
+            static get is() {
+                return 'q-feed';
+            }
+
+            static get properties() {
+                return {
+                    opened: { type: Boolean, value: false, reflectToAttribute: true }
+                }
+            }
+
+            constructor() {
+                super();
+            }
+
+            ready() {
+                super.ready();
+
+                if (/^https/.test(location.protocol)) {
+                    this.__setup();
+                }
+            }
+
+            __setup() {
+                if (window.firebase === undefined) {
+                    fb = document.createElement('script');
+                    fb.src = 'https://www.gstatic.com/firebasejs/4.10.1/firebase.js';
+                    fb.onload = _ => this.__onFirebaseLoad.bind(this);
+                    document.body.appendChild(fb);
+                }
+            }
+
+            __onFirebaseLoad() {
+
+                firebase.initializeApp({
+                    apiKey: 'AIzaSyB9eqpS9EZYOk_9Yok8Rm-g3nBjqs0W7lw',
+                    authDomain: 'qtool-196208.firebaseapp.com',
+                    databaseURL: 'https://qtool-196208.firebaseio.com',
+                    projectId: 'qtool-196208',
+                    storageBucket: ',
+                    messagingSenderId: '291581890497'
+                });
+
+                let messaging = this.__messaging =  firebase.messaging();
+                // this.__auth = firebase.auth();
+                // this.__authProvider = new firebase.auth.GoogleAuthProvider();
+
+                messaging.usePublicVapidKey('BKvx8BwtL-Y8T0SuMLszQUu6m5hj3rhf4y2A3yqB1SJxYlOdh0j__FFkHN3jtdwOobiiC2-SifcdKvYKMF1f1UA');
+
+                messaging.onTokenRefresh(function() {
+                    messaging.getToken()
+                        .then(function(refreshedToken) {
+                            this.__setTokenSentToServer(false);
+                            this.__sendTokenToServer(refreshedToken);
+                        })
+                        .catch(function(err) {
+                            this.__setTokenSentToServer(false);
+                        });
+                });
+
+                navigator.serviceWorker.register('../../worker.js').then(reg => {
+                    messaging.useServiceWorker(reg);
+
+                    messaging.getToken().then(currentToken => {
+                        if (currentToken) {
+                            this.__sendTokenToServer(currentToken);
+                            // updateUIForPushEnabled(currentToken);
+                        } else {
+                            this.set('opened', true);
+                            // permission request.
+                            // updateUIForPushPermissionRequired();
+                            this.__setTokenSentToServer(false);
+                        }
+                    });
+                });
+
+
+            }
+
+            __isTokenSentToServer() {
+                return this.session.feed_token_sent == 1;
+            }
+
+            __setTokenSentToServer(sent) {
+                this.set('session.feed_token_sent', sent ? 1 : 0);
+            }
+
+            __sendTokenToServer(token) {
+                if ( ! this.__isTokenSentToServer()) {
+                    this.$.ajax.post('/api/feed/save-token', {
+                        token: token
+                    });
+                }
+            }
+
+            __onRequestPermissionTap() {
+                let messaging = this.__messaging;
+
+                messaging.requestPermission()
+                    .then(function() {
+                        this.set('opened', false);
+                    });
+            }
+        }
+        customElements.define(QFeed.is, QFeed);
+    </script>
+</dom-module>
