@@ -15,7 +15,28 @@ class Scrapper {
         $this->_setup($options);
         $this->_output = curl_exec($this->_engine);
         $this->_info = curl_getinfo($this->_engine);
-        
+
+        curl_close($this->_engine);
+
+        $this->_engine = NULL;
+
+        return $this->_output;
+    }
+
+    public function post($remote, $data = array(), $options = array()) {
+        $this->_remote = $remote;
+        $this->_engine = curl_init();
+        $this->_setup($options);
+
+        curl_setopt($this->_engine, CURLOPT_POST, TRUE); 
+        curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data); 
+        curl_setopt($this->_engine, CURLOPT_HTTPHEADER, array(
+            'Content-Type' => 'application/json'
+        ));
+
+        $this->_output = curl_exec($this->_engine);
+        $this->_info = curl_getinfo($this->_engine);
+
         curl_close($this->_engine);
 
         $this->_engine = NULL;
