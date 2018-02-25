@@ -31,10 +31,10 @@
 
         <div class="hbox">
             <div class="flex">
-                Application need your permission
+                
             </div>
             <div>
-                <paper-button on-click="__onRequestPermissionTap">Grant Permission</paper-button>
+                <paper-button id="button-request">Grant Permission</paper-button>
             </div>
         </div>
 
@@ -53,6 +53,7 @@
 
             constructor() {
                 super();
+                this.__requestHandler = this.__onRequestPermissionTap.bind(this);
             }
 
             ready() {
@@ -61,6 +62,16 @@
                 if (/^https/.test(location.protocol)) {
                     this.__setup();
                 }
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.$['button-request'].addEventListener('click', this.__requestHandler);
+            }
+
+            disconnectedCallback() {
+                this.$['button-request'].removeEventListener('click', this.__requestHandler);
+                super.disconnectedCallback();
             }
 
             __setup() {
