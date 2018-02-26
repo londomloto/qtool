@@ -228,7 +228,8 @@
             __sendTokenToServer(token) {
                 if ( ! this.__isTokenSentToServer()) {
                     this.$.ajax.post('/api/feed/register', {
-                        token: token
+                        token: token,
+                        authorization: this.session.gapi_access_token
                     }).then(res => {
                         if (res.data.http_code == 200) {
                             this.__setTokenSentToServer(true);

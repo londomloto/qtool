@@ -14,26 +14,6 @@ class Feed extends \QTool\Api\Libs\Module {
 
     public function test() {
 
-        $data = (new Scrapper())->post(
-            'https://fcm.googleapis.com/v1/projects/qtool-196208/messages:send', 
-            array(
-                'topic' => 'qtool',
-                'notification' => array(
-                    'title' => 'B',
-                    'body' => 'A'
-                )
-            ),
-            array(
-                'json' => TRUE,
-                'headers' => array(
-                    'Authorization: key=AAAAQ-Oij8E:APA91bHxgRbdS9-KmD5EiqCKIq1hLf75pfa6mETtGYT05tGPEGvXqWRSfOjdPNiYLs6CHqL4Rw1xudf3FDVTWe1F215xnCGoSzUjm644XLruVRrLWzGzKrIgs8jljjRyq2my_AlE_roN'
-                )
-            )
-        );
-
-        return array(
-            'data' => json_decode($data)
-        );
     }
 
     public function notify($topic) {
@@ -76,13 +56,13 @@ class Feed extends \QTool\Api\Libs\Module {
 
         // subscribe to global topic
         $poster = new Scrapper();
-
+        $authorization = 'Authorization: key=AAAAQ-Oij8E:APA91bHxgRbdS9-KmD5EiqCKIq1hLf75pfa6mETtGYT05tGPEGvXqWRSfOjdPNiYLs6CHqL4Rw1xudf3FDVTWe1F215xnCGoSzUjm644XLruVRrLWzGzKrIgs8jljjRyq2my_AlE_roN';
         $poster->post(
             'https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', 
             array(), 
             array(
                 'headers' => array(
-                    'Authorization: key=AIzaSyB9eqpS9EZYOk_9Yok8Rm-g3nBjqs0W7lw'
+                    $authorization
                 )
             )
         );
