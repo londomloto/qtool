@@ -26,13 +26,22 @@ class Scrapper {
     public function post($remote, $data = array(), $options = array()) {
         $this->_remote = $remote;
         $this->_engine = curl_init();
-        $this->_setup($options);
+
+        if ( ! isset($options['headers'])) {
+            $options['headers'] = array();
+        }   
 
         curl_setopt($this->_engine, CURLOPT_POST, TRUE); 
-        curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data); 
-        curl_setopt($this->_engine, CURLOPT_HTTPHEADER, array(
-            'Content-Type' => 'application/json'
-        ));
+
+        if (isset($options['json'])) {
+            $data = json_encode($data);
+            $options['headers'][] = 'Content-Type: application/json';
+            curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data); 
+        } else {
+            curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data); 
+        }
+
+        $this->_setup($options);
 
         $this->_output = curl_exec($this->_engine);
         $this->_info = curl_getinfo($this->_engine);
@@ -72,6 +81,10 @@ class Scrapper {
         curl_setopt($this->_engine, CURLOPT_URL, $this->_remote);
         curl_setopt($this->_engine, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
         //curl_setopt($this->_engine, CURLOPT_REFERER, 'https://www.google.com');
+
+        if (isset($options['headers'])) {
+            curl_setopt($this->_engine, CURLOPT_HTTPHEADER, $options['headers']);
+        }
 
         if (isset($options['range'])) {
             curl_setopt($this->_engine, CURLOPT_RANGE, $options['range']);

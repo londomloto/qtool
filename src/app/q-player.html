@@ -463,7 +463,8 @@
                     // notify all
                     this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
                         title: 'Your Boyfriend Playing Music',
-                        body: soundtrack.text
+                        body: soundtrack.text,
+                        authorization: this.session.feed_authorization
                     });
 
                 });

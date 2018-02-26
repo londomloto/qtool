@@ -41,6 +41,8 @@
             </div>
         </div>
 
+        <button id="login"></button>
+
     </template>
     <script>
         class QFeed extends Polymer.Element {
@@ -52,6 +54,21 @@
                 return {
                     opened: { type: Boolean, value: false, reflectToAttribute: true }
                 }
+            }
+
+            constructor() {
+                super();
+                this.__loginHandler = this.__onLoginTap.bind(this);
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.$.login.addEventListener('click', this.__loginHandler);
+            }
+
+            disconnectedCallback() {
+                this.$.login.removeEventListener('click', this.__loginHandler);
+                super.disconnectedCallback();
             }
 
             ready() {
@@ -86,6 +103,9 @@
                 // this.__auth = firebase.auth();
                 // this.__authProvider = new firebase.auth.GoogleAuthProvider();
 
+                // authenticate
+                this.$.login.click();
+                
                 messaging.usePublicVapidKey('BKvx8BwtL-Y8T0SuMLszQUu6m5hj3rhf4y2A3yqB1SJxYlOdh0j__FFkHN3jtdwOobiiC2-SifcdKvYKMF1f1UA');
 
                 messaging.onTokenRefresh(function() {
@@ -141,6 +161,12 @@
                     .then( _ => {
                         this.set('opened', false);
                     });
+            }
+
+            __onLoginTap() {
+                firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(res => {
+                    this.set('session.feed_authorization', res.credential.accessToken);
+                });
             }
         }
         customElements.define(QFeed.is, QFeed);
