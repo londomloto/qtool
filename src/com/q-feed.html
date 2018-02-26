@@ -58,7 +58,9 @@
             }
 
             static get observers() {
-                '__authChanged(granted, authenticated)'
+                return [
+                    '__authChanged(granted, authenticated)'
+                ]
             }
 
             __authChanged(a, b) {
