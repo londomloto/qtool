@@ -102,13 +102,17 @@
 
                 messaging.usePublicVapidKey('BKvx8BwtL-Y8T0SuMLszQUu6m5hj3rhf4y2A3yqB1SJxYlOdh0j__FFkHN3jtdwOobiiC2-SifcdKvYKMF1f1UA');
 
-                messaging.onTokenRefresh(function() {
+                messaging.onMessage(payload => {
+                    console.log(payload);
+                });
+
+                messaging.onTokenRefresh(() => {
                     messaging.getToken()
-                        .then(function(refreshedToken) {
+                        .then(refreshedToken => {
                             this.__setTokenSentToServer(false);
                             this.__sendTokenToServer(refreshedToken);
                         })
-                        .catch(function(err) {
+                        .catch(err => {
                             this.__setTokenSentToServer(false);
                         });
                 });
