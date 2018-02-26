@@ -47,7 +47,7 @@ class Feed extends \QTool\Api\Libs\Module {
             'https://fcm.googleapis.com/v1/projects/qtool-196208/messages:send', 
             array(
                 'message' => array(
-                    'topic' => $topic,
+                    'topic' => '/topics/'.$topic,
                     'data' => array(
                         'body' => $body,
                         'title' => $title
