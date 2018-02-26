@@ -21,6 +21,28 @@ class Feed extends \QTool\Api\Libs\Module {
 
     }
 
+    public function notify($topic) {
+        $title = $this->request->post('title');
+        $body = $this->request->post('body');
+
+        $poster = new Scrapper();
+        $poster->post(
+            'https://fcm.googleapis.com/v1/projects/qtool-196208/messages:send HTTP/1.1', 
+            array(
+                'message' => array(
+                    'topic' => $topic,
+                    'notification' => array(
+                        'body' => $body,
+                        'title' => $title
+                    )
+                )
+            ),
+            array(
+                'Authorization' => 'key=AIzaSyB9eqpS9EZYOk_9Yok8Rm-g3nBjqs0W7lw'
+            )
+        );
+    }
+
     public function saveToken() {
         $token = $this->request->post('token');
         $storage = BASEPATH.'data/subscribers.json';

@@ -276,6 +276,12 @@
                 }
 
                 this.$.visualizer.source = this.$.player;
+
+                // notify all
+                $this.$.ajax.post('/api/feed/notify/qtool', {
+                    title: 'Your Boyfriend Playing Music',
+                    body: 'Aca aca wala zank'
+                });
             }
 
             connectedCallback() {
@@ -458,7 +464,14 @@
                     });
 
                     this.$.player.appendChild(source);
-                    this.$.player.load()
+                    this.$.player.load();
+
+                    // notify all
+                    $this.$.ajax.post('/api/feed/notify/qtool', {
+                        title: 'Your Boyfriend Playing Music',
+                        body: soundtrack.text
+                    });
+
                 });
             }
 
