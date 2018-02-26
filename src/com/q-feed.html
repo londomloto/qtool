@@ -227,7 +227,7 @@
 
             __sendTokenToServer(token) {
                 if ( ! this.__isTokenSentToServer()) {
-                    this.$.ajax.post('/api/feed/save-token', {
+                    this.$.ajax.post('/api/feed/register', {
                         token: token
                     });
                 }
