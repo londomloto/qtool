@@ -36,9 +36,13 @@ class Scrapper {
         if (isset($options['json'])) {
             $data = json_encode($data);
             $options['headers'][] = 'Content-Type: application/json';
-            curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data); 
+            if ( ! empty($data)) {
+                curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data);     
+            }
         } else {
-            curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data); 
+            if ( ! empty($data)) {
+                curl_setopt($this->_engine, CURLOPT_POSTFIELDS, $data);     
+            }
         }
 
         $this->_setup($options);

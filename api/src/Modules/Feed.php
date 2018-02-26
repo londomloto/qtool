@@ -61,9 +61,10 @@ class Feed extends \QTool\Api\Libs\Module {
 
             // https://iid.googleapis.com/iid/v1/nKctODamlM4:CKrh_PC8kIb7O...clJONHoA/rel/topics/movies
             'https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', 
-            array(), 
+            NULL,
             array(
                 'json' => TRUE,
+                'insecure' => TRUE,
                 'headers' => array(
                     $authorization
                 )
