@@ -207,22 +207,27 @@
 
                 navigator.serviceWorker.register('/qtool/worker.js').then(reg => {
                     messaging.useServiceWorker(reg);
+                    this.__requestToken();
+                });
+            }
 
-                    messaging.getToken()
-                        .then(currentToken => {
-                            if (currentToken) {
-                                this.__sendTokenToServer(currentToken);
-                                // updateUIForPushEnabled(currentToken);
-                            } else {
-                                this.set('granted', false);
-                                // permission request.
-                                // updateUIForPushPermissionRequired();
-                                this.__setTokenSentToServer(false);
-                            }
-                        })
-                        .catch(err => {
-                            console.log(err);
-                        });
+            __requestToken() {
+                let messaging = this.__messaging;
+
+                messaging.getToken()
+                    .then(currentToken => {
+                        if (currentToken) {
+                            this.__sendTokenToServer(currentToken);
+                            // updateUIForPushEnabled(currentToken);
+                        } else {
+                            this.set('granted', false);
+                            // permission request.
+                            // updateUIForPushPermissionRequired();
+                            this.__setTokenSentToServer(false);
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
                     });
             }
 
@@ -240,8 +245,12 @@
                         token: token,
                         authorization: this.session.gapi_access_token
                     }).then(res => {
-                        if (res.data.http_code == 200) {
+                        let status = res.data.http_code;
+                        if (status == 200) {
                             this.__setTokenSentToServer(true);
+                        } else  {
+                            messaging.deleteToken(token);
+                            this.__requestToken();
                         }
                     });
                 }
@@ -262,7 +271,7 @@
                 let messaging = this.__messaging;
 
                 messaging.requestPermission()
-                    .then( _ => {
+                    .then(() => {
                         this.set('granted', true);
                     });
             }
