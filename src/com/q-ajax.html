@@ -16,6 +16,11 @@
                 this._ensureAttribute('hidden', true);
             }
             url(path) {
+
+                if (/^http/.test(path)) {
+                    return path;
+                }
+
                 let base = this.base;
                 
                 if ( ! base) {
