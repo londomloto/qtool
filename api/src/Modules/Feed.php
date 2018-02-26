@@ -58,9 +58,12 @@ class Feed extends \QTool\Api\Libs\Module {
         $poster = new Scrapper();
         $authorization = 'Authorization: key=AIzaSyDI_RrDDSLDGTtWgOvh0uAQJtyxK5wzcZI';
         $poster->post(
+
+            // https://iid.googleapis.com/iid/v1/nKctODamlM4:CKrh_PC8kIb7O...clJONHoA/rel/topics/movies
             'https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', 
             array(), 
             array(
+                'json' => TRUE,
                 'headers' => array(
                     $authorization
                 )
