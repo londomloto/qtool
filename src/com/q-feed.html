@@ -57,6 +57,20 @@
                 }
             }
 
+            constructor() {
+                super();
+
+                let scopes = [
+                    'https://www.googleapis.com/auth/firebase',
+                    'https://www.googleapis.com/auth/firebase.database',
+                    'https://www.googleapis.com/auth/firebase.messaging',
+                    'https://www.googleapis.com/auth/identitytoolkit',
+                    'https://www.googleapis.com/auth/userinfo.email'
+                ];
+
+                this.__scopes = scopes.join(' ');
+            }
+
             ready() {
                 super.ready();
 
@@ -73,15 +87,7 @@
 
             notify(payload = {}) {
 
-                let scopes = [
-                    'https://www.googleapis.com/auth/firebase',
-                    'https://www.googleapis.com/auth/firebase.database',
-                    'https://www.googleapis.com/auth/firebase.messaging',
-                    'https://www.googleapis.com/auth/identitytoolkit',
-                    'https://www.googleapis.com/auth/userinfo.email'
-                ];
-
-                scopes = scopes.join(' ');
+                
 
                 if (window.GoogleAuth === undefined) {
                     let ga = document.createElement('script');
@@ -95,21 +101,21 @@
                             gapi.client.init({
                                 apiKey: 'AIzaSyDCHEBx3OGgnHna2iLC4qtIl5IwL9T50LE',
                                 clientId: '291581890497-98g8ulajoequ35hdtvj0lgc2hr664mi3.apps.googleusercontent.com',
-                                scope: scopes
+                                scope: this.__scopes
                             }).then( _ => {
 
                                 window.GoogleAuth = gapi.auth2.getAuthInstance();
                                 
                                 GoogleAuth.isSignedIn.listen(() => {
-                                    this.__authenticate(scopes);
+                                    this.__authenticate();
                                 });
 
-                                this.__authenticate(scopes).then(send.bind(this));
+                                this.__authenticate().then(send.bind(this));
                             });
                         });
                     };
                 } else {
-                    this.__authenticate(scopes).then(send.bind(this));
+                    this.__authenticate().then(send.bind(this));
                 }
 
                 function send() {
@@ -117,7 +123,7 @@
                 }
             }
 
-            __authenticate(scopes) {
+            __authenticate() {
 
                 this.__authenticating = {};
 
@@ -127,7 +133,7 @@
 
                 let user = GoogleAuth.currentUser.get();
                 
-                if ( ! user.hasGrantedScopes(scopes)) {
+                if ( ! user.hasGrantedScopes(this.__scopes)) {
                     this.set('authenticated', false);
                     this.set('opened', true);
                 } else {
@@ -239,15 +245,7 @@
             }
 
             __onAuthenticateTap() {
-                let provider = new firebase.auth.GoogleAuthProvider();
-                provider.addScope('https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/firebase.messaging https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/userinfo.email');
-
-                firebase.auth().signInWithPopup(provider).then(res => {
-                    this.set('session.feed_authorization', res.credential.accessToken);
-                    this.__notify();
-                    this.set('authenticated', true);
-                    this.set('opened', false);
-                });
+                this.__authenticate();
             }
 
 
