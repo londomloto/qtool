@@ -73,7 +73,7 @@ class Feed extends \QTool\Api\Libs\Module {
         // subscribe to global topic
         $poster = new Scrapper();
 
-        echo $poster->post(
+        $result = $poster->post(
             'https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', 
             array(), 
             array(
@@ -96,7 +96,7 @@ class Feed extends \QTool\Api\Libs\Module {
         // }
 
         return array(
-            'data' => $token
+            'data' => $result
         );
     }
 
