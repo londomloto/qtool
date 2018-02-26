@@ -57,8 +57,8 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'json' => TRUE,
                 'headers' => array(
-                    'Authorization: key=AAAAQ-Oij8E:APA91bHxgRbdS9-KmD5EiqCKIq1hLf75pfa6mETtGYT05tGPEGvXqWRSfOjdPNiYLs6CHqL4Rw1xudf3FDVTWe1F215xnCGoSzUjm644XLruVRrLWzGzKrIgs8jljjRyq2my_AlE_roN'
-                    // 'Authorization: Bearer '.$authorization
+                    //'Authorization: key=AAAAQ-Oij8E:APA91bHxgRbdS9-KmD5EiqCKIq1hLf75pfa6mETtGYT05tGPEGvXqWRSfOjdPNiYLs6CHqL4Rw1xudf3FDVTWe1F215xnCGoSzUjm644XLruVRrLWzGzKrIgs8jljjRyq2my_AlE_roN'
+                    'Authorization: Bearer '.$authorization
                 )
             )
         );
@@ -69,7 +69,7 @@ class Feed extends \QTool\Api\Libs\Module {
         return $data;
     }
 
-    public function saveToken() {
+    public function register() {
         $token = $this->request->post('token');
         // $storage = BASEPATH.'data/subscribers.json';
         // $data = json_decode(file_get_contents($storage), TRUE);
@@ -77,7 +77,7 @@ class Feed extends \QTool\Api\Libs\Module {
         // subscribe to global topic
         $poster = new Scrapper();
 
-        $data = $poster->post(
+        $poster->post(
             'https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', 
             array(), 
             array(
@@ -99,6 +99,8 @@ class Feed extends \QTool\Api\Libs\Module {
             
         // }
         // 
+        $data = $poster->info();
+        
         if ( ! empty($data)) {
             $data = json_decode($data);
         }
