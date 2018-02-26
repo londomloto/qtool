@@ -56,7 +56,7 @@ class Feed extends \QTool\Api\Libs\Module {
 
         // subscribe to global topic
         $poster = new Scrapper();
-        $authorization = 'Authorization: key=AAAAQ-Oij8E:APA91bHxgRbdS9-KmD5EiqCKIq1hLf75pfa6mETtGYT05tGPEGvXqWRSfOjdPNiYLs6CHqL4Rw1xudf3FDVTWe1F215xnCGoSzUjm644XLruVRrLWzGzKrIgs8jljjRyq2my_AlE_roN';
+        $authorization = 'Authorization: key=AIzaSyDI_RrDDSLDGTtWgOvh0uAQJtyxK5wzcZI';
         $poster->post(
             'https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', 
             array(), 
