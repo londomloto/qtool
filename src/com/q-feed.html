@@ -78,7 +78,12 @@
                 }); 
 
                 // authenticate
-                this.$.login.click();
+                if ( ! this.session.feed_authorization) {
+                    this.$.login.click();    
+                } else {
+                    this.__notify();
+                }
+                
 
                 if (/^https/.test(location.protocol)) {
                     this.__setup();
