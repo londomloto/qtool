@@ -100,10 +100,6 @@ class Feed extends \QTool\Api\Libs\Module {
         // }
         // 
         $data = $poster->info();
-        
-        if ( ! empty($data)) {
-            $data = json_decode($data);
-        }
 
         return array(
             'data' => $data
