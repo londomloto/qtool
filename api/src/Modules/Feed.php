@@ -41,7 +41,7 @@ class Feed extends \QTool\Api\Libs\Module {
                     'Authorization: Bearer '.$authorization
                 )
             )
-        );
+        ); 
 
         $data = json_decode($result, TRUE);
         $data = array_merge($data, $poster->info());
