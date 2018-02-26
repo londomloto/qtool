@@ -138,6 +138,8 @@
                     this.set('authenticated', false);
                     this.set('opened', true);
                 } else {
+                    this.set('authenticated', true);
+                    this.set('opened', false);
                     console.log(user);
                     this.__authenticating.resolve();
                 }
