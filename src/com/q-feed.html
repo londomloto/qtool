@@ -249,7 +249,7 @@
                         if (status == 200) {
                             this.__setTokenSentToServer(true);
                         } else  {
-                            messaging.deleteToken(token);
+                            this.__messaging.deleteToken(token);
                             this.__requestToken();
                         }
                     });
