@@ -34,10 +34,10 @@
 
         <div class="hbox">
             <div class="flex" style="text-align: left;">
-                <paper-button hidden$="[[ authorized ]]" on-tap="__onAuthorizeTap" id="button-request">Authorize</paper-button>
+                <paper-button hidden$="[[ authenticated ]]" on-tap="__onAuthenticateTap" id="button-authenticate">Authorize</paper-button>
             </div>
             <div class="flex" style="text-align: right;">
-                <paper-button hidden$="[[ granted ]]" on-tap="__onPermissionTap" id="button-request">Permission</paper-button>
+                <paper-button hidden$="[[ granted ]]" on-tap="__onPermissionTap" id="button-grant">Permission</paper-button>
             </div>
         </div>
 
@@ -52,7 +52,7 @@
                 return {
                     opened: { type: Boolean, value: false, reflectToAttribute: true },
                     granted: { type: Boolean, value: false, reflectToAttribute: true },
-                    authorized: { type: Boolean, value: false, reflectToAttribute: true },
+                    authenticated: { type: Boolean, value: false, reflectToAttribute: true },
                     session: { type: Object }
                 }
             }
@@ -60,7 +60,7 @@
             ready() {
                 super.ready();
 
-                this._ensureAttribute('authorized', true);
+                this._ensureAttribute('authenticated', true);
                 this._ensureAttribute('granted', true);
 
                 if (window.firebase === undefined) {
@@ -69,6 +69,73 @@
                     fb.onload = this.__onFirebaseLoad.bind(this);
                     document.body.appendChild(fb);
                 }
+            }
+
+            notify(payload = {}) {
+
+                let scopes = [
+                    'https://www.googleapis.com/auth/firebase',
+                    'https://www.googleapis.com/auth/firebase.database',
+                    'https://www.googleapis.com/auth/firebase.messaging',
+                    'https://www.googleapis.com/auth/identitytoolkit',
+                    'https://www.googleapis.com/auth/userinfo.email'
+                ];
+
+                scopes = scopes.join(' ');
+
+                if (window.GoogleAuth === undefined) {
+                    let ga = document.createElement('script');
+
+                    ga.src = 'https://apis.google.com/js/api.js';
+                    ga.defer = true;
+                    ga.async = true;
+                    ga.onload = _ => {
+                        gapi.load('client:auth2', _ => {
+
+                            gapi.client.init({
+                                apiKey: 'AIzaSyDCHEBx3OGgnHna2iLC4qtIl5IwL9T50LE',
+                                clientId: '291581890497-98g8ulajoequ35hdtvj0lgc2hr664mi3.apps.googleusercontent.com',
+                                scope: scopes
+                            }).then( _ => {
+
+                                window.GoogleAuth = gapi.auth2.getAuthInstance();
+                                
+                                GoogleAuth.isSignedIn.listen(() => {
+                                    this.__authenticate(scopes);
+                                });
+
+                                this.__authenticate(scopes).then(send.bind(this));
+                            });
+                        });
+                    };
+                } else {
+                    this.__authenticate(scopes).then(send.bind(this));
+                }
+
+                function send() {
+
+                }
+            }
+
+            __authenticate(scopes) {
+
+                this.__authenticating = {};
+
+                this.__authenticating.promise = new Promise(res => {
+                    this.__authenticating.resolve = res;
+                });
+
+                let user = GoogleAuth.currentUser.get();
+                
+                if ( ! user.hasGrantedScopes(scopes)) {
+                    this.set('authenticated', false);
+                    this.set('opened', true);
+                } else {
+                    console.log(user);
+                    this.__authenticating.resolve();
+                }
+
+                return this.__authenticating.promise;
             }
 
             __onFirebaseLoad() {
@@ -81,14 +148,6 @@
                     messagingSenderId: '291581890497'
                 }); 
 
-                // authenticate
-                if ( ! this.session.feed_authorization) {
-                    this.set('authorized', false);
-                    this.set('opened', true);
-                } else {
-                    this.__notify();
-                }
-                
                 if (/^https/.test(location.protocol)) {
                     this.__setup();
                 }
@@ -110,6 +169,7 @@
                 messaging.onTokenRefresh(() => {
                     messaging.getToken()
                         .then(refreshedToken => {
+                            console.log(refreshedToken);
                             this.__setTokenSentToServer(false);
                             this.__sendTokenToServer(refreshedToken);
                         })
@@ -159,11 +219,13 @@
 
             __notify() {
                 // notify all
-                this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
-                    title: 'Hei Baby',
-                    body: 'I want to make love',
-                    authorization: this.session.feed_authorization
-                });
+                if (this.session.feed_authorization) {
+                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
+                        title: 'Hei Baby',
+                        body: 'I want to make love',
+                        authorization: this.session.feed_authorization
+                    });
+                }
             }
 
             __onPermissionTap() {
@@ -176,14 +238,14 @@
                     });
             }
 
-            __onAuthorizeTap() {
+            __onAuthenticateTap() {
                 let provider = new firebase.auth.GoogleAuthProvider();
                 provider.addScope('https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/firebase.messaging https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/userinfo.email');
 
                 firebase.auth().signInWithPopup(provider).then(res => {
                     this.set('session.feed_authorization', res.credential.accessToken);
                     this.__notify();
-                    this.set('authorized', true);
+                    this.set('authenticated', true);
                     this.set('opened', false);
                 });
             }
