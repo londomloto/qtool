@@ -33,15 +33,13 @@
         <q-session session="{{ session }}"></q-session>
 
         <div class="hbox">
-            <div class="flex">
-                
+            <div class="flex" style="text-align: left;">
+                <paper-button hidden$="[[ authorized ]]" on-tap="__onAuthorizeTap" id="button-request">Authorize</paper-button>
             </div>
-            <div>
-                <paper-button on-tap="__onRequestPermissionTap" id="button-request">Grant Permission</paper-button>
+            <div class="flex" style="text-align: right;">
+                <paper-button hidden$="[[ granted ]]" on-tap="__onPermissionTap" id="button-request">Grant Permission</paper-button>
             </div>
         </div>
-
-        <button id="login" on-click="__onLoginTap"></button>
 
     </template>
     <script>
@@ -52,12 +50,17 @@
 
             static get properties() {
                 return {
-                    opened: { type: Boolean, value: false, reflectToAttribute: true }
+                    opened: { type: Boolean, value: false, reflectToAttribute: true },
+                    granted: { type: Boolean, value: false, reflectToAttribute },
+                    authorized: { type: Boolean, value: false, reflectToAttribute: true }
                 }
             }
 
             ready() {
                 super.ready();
+
+                this._ensureAttribute('authorized', true);
+                this._ensureAttribute('granted', true);
 
                 if (window.firebase === undefined) {
                     let fb = document.createElement('script');
@@ -79,12 +82,12 @@
 
                 // authenticate
                 if ( ! this.session.feed_authorization) {
-                    this.$.login.click();    
+                    this.set('authorized', false);
+                    this.set('opened', true);
                 } else {
                     this.__notify();
                 }
                 
-
                 if (/^https/.test(location.protocol)) {
                     this.__setup();
                 }
@@ -118,6 +121,7 @@
                             this.__sendTokenToServer(currentToken);
                             // updateUIForPushEnabled(currentToken);
                         } else {
+                            this.set('granted', false);
                             this.set('opened', true);
                             // permission request.
                             // updateUIForPushPermissionRequired();
@@ -152,23 +156,25 @@
                 });
             }
 
-            __onRequestPermissionTap() {
+            __onPermissionTap() {
                 let messaging = this.__messaging;
 
                 messaging.requestPermission()
                     .then( _ => {
+                        this.set('granted', true);
                         this.set('opened', false);
                     });
             }
 
-            __onLoginTap() {
+            __onAuthorizeTap() {
                 let provider = new firebase.auth.GoogleAuthProvider();
                 provider.addScope('https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/firebase.messaging https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/userinfo.email');
 
                 firebase.auth().signInWithPopup(provider).then(res => {
                     this.set('session.feed_authorization', res.credential.accessToken);
-
                     this.__notify();
+                    this.set('authorized', true);
+                    this.set('opened', false);
                 });
             }
 
