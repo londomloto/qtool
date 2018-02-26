@@ -10,7 +10,9 @@
             }
             paper-button {
                 color: #fff;
-                background-color: var(--paper-blue-500);
+                background-color: var(--paper-red-400);
+                font-size: 13px;
+                font-weight: normal;
             }
             :host {
                 position: fixed;
@@ -19,8 +21,9 @@
                 box-sizing: border-box;
                 padding: 10px;
                 display: none;
-                background-color: var(--paper-grey-100);
+                background-color: var(--paper-grey-200);
                 font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+                z-index: 2;
             }
             :host([opened]) {
                 display: block;
@@ -34,7 +37,7 @@
                 
             </div>
             <div>
-                <paper-button id="button-request">Grant Permission</paper-button>
+                <paper-button on-tap="__onRequestPermissionTap" id="button-request">Grant Permission</paper-button>
             </div>
         </div>
 
@@ -51,27 +54,12 @@
                 }
             }
 
-            constructor() {
-                super();
-                this.__requestHandler = this.__onRequestPermissionTap.bind(this);
-            }
-
             ready() {
                 super.ready();
 
                 if (/^https/.test(location.protocol)) {
                     this.__setup();
                 }
-            }
-
-            connectedCallback() {
-                super.connectedCallback();
-                this.$['button-request'].addEventListener('click', this.__requestHandler);
-            }
-
-            disconnectedCallback() {
-                this.$['button-request'].removeEventListener('click', this.__requestHandler);
-                super.disconnectedCallback();
             }
 
             __setup() {
@@ -150,7 +138,7 @@
                 let messaging = this.__messaging;
 
                 messaging.requestPermission()
-                    .then(function() {
+                    .then( _ => {
                         this.set('opened', false);
                     });
             }
