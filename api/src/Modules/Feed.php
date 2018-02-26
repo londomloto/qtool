@@ -62,7 +62,10 @@ class Feed extends \QTool\Api\Libs\Module {
             )
         );
 
-        return json_decode($result);
+        $data = json_decode($result, TRUE);
+        $data = array_merge($data, $poster->info());
+
+        return $data;
     }
 
     public function saveToken() {
