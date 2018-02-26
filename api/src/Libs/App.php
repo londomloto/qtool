@@ -32,12 +32,33 @@ class App {
         }
 
         $action = Text::camelize($action, '-', FALSE);
-        
+
         $params = $segments;
         $module = 'QTool\\Api\\Modules\\'.Text::camelize($module, '-', TRUE);
 
         $object = new $module($this);
         $object->app($this);
+
+        // handle cors
+        $origin = $this->request->header('ORIGIN');
+        if (empty($origin)) {
+            $origin = '*';
+        }
+
+        header('Access-Control-Allow-Origin: '.$origin);
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Max-Age: 86400');
+
+        if (($headers = $this->request->header('Access-Control-Request-Headers'))) {
+            header('Access-Control-Allow-Headers: '.$headers);
+        }
+
+        if ($this->request->method() == 'OPTIONS') {
+            header('Access-Control-Allow-Methods: GET,PUT,POST,DELETE,OPTIONS');
+            header('Content-Type: application/json');
+            echo json_encode(array('success' => TRUE));
+            exit();
+        }
 
         ob_start();
         $result = call_user_func_array(array($object, $action), $params);

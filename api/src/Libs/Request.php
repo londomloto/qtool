@@ -7,6 +7,7 @@ class Request {
     protected $_query;
     protected $_post;
     protected $_body;
+    protected $_headers;
 
     public function __construct() {
         $this->_query = $_GET;
@@ -21,6 +22,20 @@ class Request {
         if ($this->isJsonRequest()) {
             $this->_body = json_decode($this->_body, TRUE);
         }
+
+        $this->_headers = apache_request_headers();
+
+    }
+
+    public function method() {
+        return $this->_method;
+    }
+
+    public function header($key = NULL, $default = NULL) {
+        if (is_null($key)) {
+            return $this->_headers;
+        }
+        return isset($this->_headers[$key]) ? $this->_headers[$key] : $default;
     }
 
     public function isJsonRequest() {
