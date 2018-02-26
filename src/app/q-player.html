@@ -141,6 +141,7 @@
 
         <q-ajax id="ajax"></q-ajax>
         <q-screen screen="{{ screen }}"></q-screen>
+        <q-session session="{{ session }}"></q-session>
 
         <app-header-layout class$="layout [[ screen ]]" id="layout">
             <app-header slot="header" fixed>
@@ -459,13 +460,6 @@
 
                     this.$.player.appendChild(source);
                     this.$.player.load();
-
-                    // notify all
-                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
-                        title: 'Your Boyfriend Playing Music',
-                        body: soundtrack.text,
-                        authorization: this.session.feed_authorization
-                    });
 
                 });
             }

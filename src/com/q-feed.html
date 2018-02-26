@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <button id="login"></button>
+        <button id="login" on-click="__onLoginTap"></button>
 
     </template>
     <script>
@@ -56,30 +56,9 @@
                 }
             }
 
-            constructor() {
-                super();
-                this.__loginHandler = this.__onLoginTap.bind(this);
-            }
-
-            connectedCallback() {
-                super.connectedCallback();
-                this.$.login.addEventListener('click', this.__loginHandler);
-            }
-
-            disconnectedCallback() {
-                this.$.login.removeEventListener('click', this.__loginHandler);
-                super.disconnectedCallback();
-            }
-
             ready() {
                 super.ready();
 
-                if (/^https/.test(location.protocol)) {
-                    this.__setup();
-                }
-            }
-
-            __setup() {
                 if (window.firebase === undefined) {
                     let fb = document.createElement('script');
                     fb.src = 'https://www.gstatic.com/firebasejs/4.10.1/firebase.js';
@@ -89,7 +68,6 @@
             }
 
             __onFirebaseLoad() {
-
                 firebase.initializeApp({
                     apiKey: 'AIzaSyB9eqpS9EZYOk_9Yok8Rm-g3nBjqs0W7lw',
                     authDomain: 'qtool-196208.firebaseapp.com',
@@ -97,15 +75,23 @@
                     projectId: 'qtool-196208',
                     storageBucket: '',
                     messagingSenderId: '291581890497'
-                });
+                }); 
+
+                // authenticate
+                this.$.login.click();
+
+                if (/^https/.test(location.protocol)) {
+                    this.__setup();
+                }
+
+            }
+
+            __setup() {
 
                 let messaging = this.__messaging =  firebase.messaging();
                 // this.__auth = firebase.auth();
                 // this.__authProvider = new firebase.auth.GoogleAuthProvider();
 
-                // authenticate
-                this.$.login.click();
-                
                 messaging.usePublicVapidKey('BKvx8BwtL-Y8T0SuMLszQUu6m5hj3rhf4y2A3yqB1SJxYlOdh0j__FFkHN3jtdwOobiiC2-SifcdKvYKMF1f1UA');
 
                 messaging.onTokenRefresh(function() {
@@ -134,8 +120,6 @@
                         }
                     });
                 });
-
-
             }
 
             __isTokenSentToServer() {
@@ -154,6 +138,15 @@
                 }
             }
 
+            __notify() {
+                // notify all
+                this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
+                    title: 'Hei Baby',
+                    body: 'I want to make love',
+                    authorization: this.session.feed_authorization
+                });
+            }
+
             __onRequestPermissionTap() {
                 let messaging = this.__messaging;
 
@@ -164,10 +157,17 @@
             }
 
             __onLoginTap() {
-                firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(res => {
+                let provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/firebase.messaging https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/userinfo.email');
+
+                firebase.auth().signInWithPopup(provider).then(res => {
                     this.set('session.feed_authorization', res.credential.accessToken);
+
+                    this.__notify();
                 });
             }
+
+
         }
         customElements.define(QFeed.is, QFeed);
     </script>
