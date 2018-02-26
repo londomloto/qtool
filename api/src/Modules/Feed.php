@@ -46,10 +46,12 @@ class Feed extends \QTool\Api\Libs\Module {
         $result = $poster->post(
             'https://fcm.googleapis.com/v1/projects/qtool-196208/messages:send', 
             array(
-                'topic' => $topic,
-                'notification' => array(
-                    'body' => $body,
-                    'title' => $title
+                'message' => array(
+                    'topic' => $topic,
+                    'notification' => array(
+                        'body' => $body,
+                        'title' => $title
+                    )
                 )
             ),
             array(
@@ -65,27 +67,29 @@ class Feed extends \QTool\Api\Libs\Module {
 
     public function saveToken() {
         $token = $this->request->post('token');
-        $storage = BASEPATH.'data/subscribers.json';
-        $data = json_decode(file_get_contents($storage), TRUE);
+        // $storage = BASEPATH.'data/subscribers.json';
+        // $data = json_decode(file_get_contents($storage), TRUE);
 
-        if ( ! isset($data[$token])) {
-            $data[$token] = array(); 
-            $open = fopen($storage, 'w');
+        // subscribe to global topic
+        $poster = new Scrapper();
+        $poster->post('https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', array(), array(
+            'Authorization' => 'key=AIzaSyB9eqpS9EZYOk_9Yok8Rm-g3nBjqs0W7lw'
+        ));
 
-            if ($open) {
-                fwrite($open, json_encode($data));
-                fclose($open);
-            }
+        // if ( ! isset($data[$token])) {
+        //     $data[$token] = array(); 
+        //     $open = fopen($storage, 'w');
 
-            // subscribe to global topic
-            $poster = new Scrapper();
-            $poster->post('https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', array(), array(
-                'Authorization' => 'key=AIzaSyB9eqpS9EZYOk_9Yok8Rm-g3nBjqs0W7lw'
-            ));
-        }
+        //     if ($open) {
+        //         fwrite($open, json_encode($data));
+        //         fclose($open);
+        //     }
+
+            
+        // }
 
         return array(
-            'data' => $data
+            'data' => $token
         );
     }
 
