@@ -26,7 +26,7 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'json' => TRUE,
                 'headers' => array(
-                    'Authorization: key=AIzaSyDCHEBx3OGgnHna2iLC4qtIl5IwL9T50LE'
+                    'Authorization: key=AAAAQ-Oij8E:APA91bHxgRbdS9-KmD5EiqCKIq1hLf75pfa6mETtGYT05tGPEGvXqWRSfOjdPNiYLs6CHqL4Rw1xudf3FDVTWe1F215xnCGoSzUjm644XLruVRrLWzGzKrIgs8jljjRyq2my_AlE_roN'
                 )
             )
         );

@@ -229,9 +229,11 @@
                 if ( ! this.__isTokenSentToServer()) {
                     this.$.ajax.post('/api/feed/register', {
                         token: token
+                    }).then(res => {
+                        if (res.data.http_code == 200) {
+                            this.__setTokenSentToServer(true);
+                        }
                     });
-
-                    this.__setTokenSentToServer(true);
                 }
             }
 
