@@ -141,8 +141,8 @@
                     this.set('authenticated', true);
                     this.set('opened', false);
 
-                    let accessToken = user.getAuthResponse();
-                    console.log(accessToken);
+                    let accessToken = user.getAuthResponse().access_token;
+                    this.set('session.gapi_access_token', accessToken);
 
                     this.__authenticating.resolve();
                 }
