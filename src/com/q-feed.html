@@ -133,14 +133,17 @@
                 });
 
                 let user = GoogleAuth.currentUser.get();
-                
+
                 if ( ! user.hasGrantedScopes(this.__scopes)) {
                     this.set('authenticated', false);
                     this.set('opened', true);
                 } else {
                     this.set('authenticated', true);
                     this.set('opened', false);
-                    console.log(user);
+
+                    let accessToken = user.getAuthResponse();
+                    console.log(accessToken);
+
                     this.__authenticating.resolve();
                 }
 
