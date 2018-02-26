@@ -461,7 +461,7 @@
                     this.$.player.load();
 
                     // notify all
-                    $this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
+                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
                         title: 'Your Boyfriend Playing Music',
                         body: soundtrack.text
                     });
