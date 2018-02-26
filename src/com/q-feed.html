@@ -230,6 +230,8 @@
                     this.$.ajax.post('/api/feed/register', {
                         token: token
                     });
+
+                    this.__setTokenSentToServer(true);
                 }
             }
 
