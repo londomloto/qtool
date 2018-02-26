@@ -57,7 +57,8 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'json' => TRUE,
                 'headers' => array(
-                    'Authorization: Bearer '.$authorization
+                    'Authorization: key=AAAAQ-Oij8E:APA91bHxgRbdS9-KmD5EiqCKIq1hLf75pfa6mETtGYT05tGPEGvXqWRSfOjdPNiYLs6CHqL4Rw1xudf3FDVTWe1F215xnCGoSzUjm644XLruVRrLWzGzKrIgs8jljjRyq2my_AlE_roN'
+                    // 'Authorization: Bearer '.$authorization
                 )
             )
         );
