@@ -113,6 +113,7 @@
                             this.__sendTokenToServer(refreshedToken);
                         })
                         .catch(err => {
+                            console.log(err);
                             this.__setTokenSentToServer(false);
                         });
                 });
@@ -120,19 +121,23 @@
                 navigator.serviceWorker.register('/qtool/worker.js').then(reg => {
                     messaging.useServiceWorker(reg);
 
-                    messaging.getToken().then(currentToken => {
-                        if (currentToken) {
-                            this.__sendTokenToServer(currentToken);
-                            // updateUIForPushEnabled(currentToken);
-                        } else {
-                            this.set('granted', false);
-                            this.set('opened', true);
-                            // permission request.
-                            // updateUIForPushPermissionRequired();
-                            this.__setTokenSentToServer(false);
-                        }
+                    messaging.getToken()
+                        .then(currentToken => {
+                            if (currentToken) {
+                                this.__sendTokenToServer(currentToken);
+                                // updateUIForPushEnabled(currentToken);
+                            } else {
+                                this.set('granted', false);
+                                this.set('opened', true);
+                                // permission request.
+                                // updateUIForPushPermissionRequired();
+                                this.__setTokenSentToServer(false);
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        });
                     });
-                });
             }
 
             __isTokenSentToServer() {

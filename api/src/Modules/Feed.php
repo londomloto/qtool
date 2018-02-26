@@ -72,7 +72,8 @@ class Feed extends \QTool\Api\Libs\Module {
 
         // subscribe to global topic
         $poster = new Scrapper();
-        $poster->post('https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', array(), array(
+
+        echo $poster->post('https://iid.googleapis.com/iid/v1/'.$token.'/rel/topics/qtool', array(), array(
             'Authorization' => 'key=AIzaSyB9eqpS9EZYOk_9Yok8Rm-g3nBjqs0W7lw'
         ));
 
