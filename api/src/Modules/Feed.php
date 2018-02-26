@@ -48,7 +48,7 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'message' => array(
                     'topic' => $topic,
-                    'notification' => array(
+                    'data' => array(
                         'body' => $body,
                         'title' => $title
                     )
