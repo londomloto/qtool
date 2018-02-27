@@ -15,10 +15,9 @@ firebase.initializeApp(config);
 const messaging = firebase.messaging();
 
 messaging.setBackgroundMessageHandler(function(payload) {
-  console.log(payload);
-  const notificationTitle = 'Notification';
+  const notificationTitle = payload.data.title;
   const notificationOptions = {
-        body: 'You have new notification',
+        body: payload.data.body,
         icon: 'img/manifest/icon-48x48.png'
   };
   return self.registration.showNotification(notificationTitle, notificationOptions);

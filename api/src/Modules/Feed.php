@@ -29,8 +29,14 @@ class Feed extends \QTool\Api\Libs\Module {
                 'message' => array(
                     'topic' => $topic,
                     'data' => array(
+                        'title' => $title,
+                        'body' => $body
+                    ),
+                    'notification' => array(
+                        'title' => $title,
                         'body' => $body,
-                        'title' => $title
+                        'click_action' => 'https://www.pusdikadm.xyz/qtool',
+                        'priority' => 'high'
                     )
                 )
             ),
