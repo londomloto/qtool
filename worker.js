@@ -18,7 +18,8 @@ messaging.setBackgroundMessageHandler(function(payload) {
   const notificationTitle = payload.data.title;
   const notificationOptions = {
         body: payload.data.body,
-        icon: 'img/manifest/icon-48x48.png'
+        icon: 'img/manifest/icon-48x48.png',
+        click_action: 'https://www.pusdikadm.xyz/qtool'
   };
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
