@@ -57,6 +57,10 @@
                 background-color: var(--paper-grey-500);
                 color: #fff;
             }
+            .btn-notify {
+                background-color: var(--paper-pink-500);
+                color: #fff;
+            }
             #browser {
                 display: none;
             }
@@ -107,6 +111,7 @@
                     <input on-change="__onBrowserChange" type="file" id="browser">
                     <p>Upload image to server and show notification to others.</p>
                     <paper-button on-tap="__onUploadTap" class="btn-upload">Upload Image</paper-button>
+                    <paper-button on-tap="__onNotifyTap" class="btn-notify">Notify Others</paper-button>
                 </section>
             </iron-pages>
         </app-header-layout>
@@ -201,6 +206,13 @@
                 });
             }
 
+            __notify() {
+                this.$.feed.notify({
+                    title: 'Hei baby...',
+                    body: 'Your memex like this one. yummm'
+                });
+            }
+
             __onGalleryChange() {
                 let context = $(this.shadowRoot.querySelector('section[name="gallery"]'));
                 
@@ -248,10 +260,7 @@
                         this.$.browser.value = '';
                         let res = JSON.parse(xhr.responseText);
                         if (res.success) {
-                            this.$.feed.notify({
-                                title: 'Hei baby...',
-                                body: 'Your memex like this one. yummm'
-                            })
+                            this.__notify();
                         }
                     }
                 };
@@ -267,6 +276,10 @@
 
             __onSetupTap() {
                 this.set('section', 'options');
+            }
+
+            __onNotifyTap() {
+                this.__notify();
             }
 
             __onBackTap() {
