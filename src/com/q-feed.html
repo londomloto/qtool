@@ -253,17 +253,6 @@
                 }
             }
 
-            __notify() {
-                // notify all
-                if (this.session.feed_authorization) {
-                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
-                        title: 'Hei Baby',
-                        body: 'I want to make love',
-                        authorization: this.session.feed_authorization
-                    });
-                }
-            }
-
             __onPermissionTap() {
                 let messaging = this.__messaging;
 
