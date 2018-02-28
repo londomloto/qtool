@@ -19,7 +19,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
   const notificationOptions = {
         body: payload.data.body,
         icon: 'img/manifest/icon-48x48.png',
-        image: payload.data.image
+        image: 'temp/image.jpg'
   };
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
