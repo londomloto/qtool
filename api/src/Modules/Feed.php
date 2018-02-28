@@ -21,11 +21,14 @@ class Feed extends \QTool\Api\Libs\Module {
         $body = $this->request->post('body');
         $authorization = $this->request->post('authorization');
 
-        $message = array(
+        $data = array(
             'title' => $title,
             'body' => $body,
             'icon' => 'img/manifest/icon-48x48.png'
         );
+
+        $push = $data;
+        $push['image'] = 'api/assets/thumb?path=temp/image.jpg';
 
         $poster = new Scrapper();
 
@@ -34,9 +37,9 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'message' => array(
                     'topic' => $topic,
-                    'data' => $message,
+                    'data' => $data,
                     'webpush' => array(
-                        'notification' => $message
+                        'notification' => $push
                     )
                 )
             ),
