@@ -18,8 +18,8 @@ messaging.setBackgroundMessageHandler(function(payload) {
   const notificationTitle = payload.data.title;
   const notificationOptions = {
         body: payload.data.body,
-        icon: 'img/manifest/icon-48x48.png',
-        image: 'img/manifest/icon-48x48.png'
+        icon: payload.data.icon,
+        image: payload.data.image
   };
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });

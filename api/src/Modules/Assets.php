@@ -1,7 +1,17 @@
 <?php
 namespace QTool\Api\Modules;
 
-class Assets {
+class Assets extends \QTool\Api\Libs\Module {
+
+    public function thumb() {
+        $maxw = 300;
+        $maxh = 400;
+        $path = urldecode($this->request->get('path'));
+        $file = BASEPATH.$path;
+
+        $image = new \QTool\Api\Libs\Image($file);
+        $image->crop($maxw, $maxh);
+    }
 
     public function download() {
         $path = urldecode($_GET['path']);

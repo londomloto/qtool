@@ -88,6 +88,24 @@ class Gallery extends \QTool\Api\Libs\Module {
         );
     }
 
+    public function upload() {
+        if (isset($_FILES['userfile'])) {
+            $path = 'temp/upload_'.date('ymdhis');
+            $temp = BASEPATH.$path;
+            if (move_uploaded_file($_FILES['userfile']['tmp_name'], $temp)) {
+                return array(
+                    'success' => TRUE,
+                    'data' => array(
+                        'url' => 'api/assets/thumb?path='.urlencode($path)
+                    )
+                );
+            }
+        }
+        return array(
+            'success' => FALSE
+        );
+    }
+
     public function image() {
         $file = IMAGE_BASEPATH.urldecode($this->request->get('path'));
 

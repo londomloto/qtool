@@ -34,10 +34,10 @@
 
         <div class="hbox">
             <div class="flex" style="text-align: left;">
-                <paper-button hidden$="[[ authenticated ]]" on-tap="__onAuthenticateTap" id="button-authenticate">Authorize</paper-button>
+                <paper-button hidden$="[[ authenticated ]]" on-tap="__onAuthenticateTap" id="button-authenticate">Authenticate</paper-button>
             </div>
             <div class="flex" style="text-align: right;">
-                <paper-button hidden$="[[ granted ]]" on-tap="__onPermissionTap" id="button-grant">Permission</paper-button>
+                <paper-button hidden$="[[ authorized ]]" on-tap="__onAuthorizeTap" id="button-authorize">Authorize</paper-button>
             </div>
         </div>
 
@@ -51,15 +51,15 @@
             static get properties() {
                 return {
                     opened: { type: Boolean, value: false, reflectToAttribute: true },
-                    granted: { type: Boolean, value: false, reflectToAttribute: true },
-                    authenticated: { type: Boolean, value: false, reflectToAttribute: true },
+                    authorized: { type: Boolean, value: true, reflectToAttribute: true },
+                    authenticated: { type: Boolean, value: true, reflectToAttribute: true },
                     session: { type: Object }
                 }
             }
 
             static get observers() {
                 return [
-                    '__authChanged(granted, authenticated)'
+                    '__authChanged(authorized, authenticated)'
                 ]
             }
 
@@ -86,20 +86,20 @@
             ready() {
                 super.ready();
 
-                this._ensureAttribute('authenticated', true);
-                this._ensureAttribute('granted', true);
-
-                if (window.firebase === undefined) {
-                    let fb = document.createElement('script');
-                    fb.src = 'https://www.gstatic.com/firebasejs/4.10.1/firebase.js';
-                    fb.onload = this.__onFirebaseLoad.bind(this);
-                    document.body.appendChild(fb);
-                }
+                // if (window.firebase === undefined) {
+                //     let fb = document.createElement('script');
+                //     fb.src = 'https://www.gstatic.com/firebasejs/4.10.1/firebase.js';
+                //     fb.onload = this.__onFirebaseLoad.bind(this);
+                //     document.body.appendChild(fb);
+                // }
             }
 
             notify(payload = {}) {
 
-                
+                let q = {};
+                q.promise = new Promise(res => {
+                    q.resolve = res;
+                });
 
                 if (window.GoogleAuth === undefined) {
                     let ga = document.createElement('script');
@@ -122,19 +122,26 @@
                                     this.__authenticate();
                                 });
 
-                                this.__authenticate().then(send.bind(this));
+                                this.__authenticate().then(send.bind(this, q));
                             });
                         });
                     };
                     document.body.appendChild(ga);
                 } else {
-                    this.__authenticate().then(send.bind(this));
+                    this.__authenticate().then(send.bind(this, q));
                 }
 
-                function send() {
+                return q.promise;
+
+                function send(q) {
                     payload.authorization = this.session.gapi_access_token;
-                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', payload);
+
+                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', payload).then(res => {
+                        q.resolve(res);
+                    });
                 }
+
+
             }
 
             __authenticate() {
@@ -217,7 +224,7 @@
                             this.__sendTokenToServer(currentToken);
                             // updateUIForPushEnabled(currentToken);
                         } else {
-                            this.set('granted', false);
+                            this.set('authorized', false);
                             // permission request.
                             // updateUIForPushPermissionRequired();
                             this.__setTokenSentToServer(false);
@@ -253,12 +260,12 @@
                 }
             }
 
-            __onPermissionTap() {
+            __onAuthorizeTap() {
                 let messaging = this.__messaging;
 
                 messaging.requestPermission()
                     .then(() => {
-                        this.set('granted', true);
+                        this.set('authorized', true);
                     });
             }
 

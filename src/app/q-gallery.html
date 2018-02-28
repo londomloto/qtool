@@ -53,12 +53,21 @@
             .thumb .card-content {
                 display: none;
             }
+            .btn-upload {
+                background-color: var(--paper-grey-500);
+                color: #fff;
+            }
+            #browser {
+                display: none;
+            }
             [hidden] {
                 display: none;
             }
         </style>
 
         <q-ajax id="ajax"></q-ajax>
+        <q-feed id="feed"></q-feed>
+
         <q-screen screen="{{ screen }}"></q-screen>
 
         <app-header-layout class$="layout [[ screen ]]" id="layout" has-scrolling-region>
@@ -66,7 +75,6 @@
                 <app-toolbar class="primary-toolbar">
                     <slot name="drawer-toggle"></slot>
                     <div main-title>Gallery</div>
-                    <paper-icon-button icon="refresh" on-tap="__onRefreshTap"></paper-icon-button>
                     <paper-icon-button icon="settings" on-tap="__onSetupTap"></paper-icon-button>
                 </app-toolbar>
             </app-header>
@@ -87,8 +95,7 @@
                             <paper-card 
                                 class="thumb" 
                                 data-src$="[[ item.image ]]" 
-                                image$="[[ item.thumb ]]" 
-                                on-clickx="__onImageTap">
+                                image$="[[ item.thumb ]]">
                                 <div class="card-content">
                                     <img src$="[[ item.thumb ]]">
                                 </div>
@@ -97,7 +104,9 @@
                     </div>
                 </section>
                 <section name="options">
-                    
+                    <input on-change="__onBrowserChange" type="file" id="browser">
+                    <p>Upload image to server and show notification to others.</p>
+                    <paper-button on-tap="__onUploadTap" class="btn-upload">Upload Image</paper-button>
                 </section>
             </iron-pages>
         </app-header-layout>
@@ -175,6 +184,7 @@
 
             __loadGallery() {
                 this.set('busy', true);
+
                 this.$.ajax.get('/api/gallery').then(res => {
                     this.set('gallery', res.data);
                     this.set('busy', false);
@@ -193,7 +203,7 @@
 
             __onGalleryChange() {
                 let context = $(this.shadowRoot.querySelector('section[name="gallery"]'));
-
+                
                 if (context.data('lightGallery')) {
                     context.data('lightGallery').destroy(true);
                 }
@@ -214,6 +224,40 @@
             __onGalleryItemTap(e) {
                 this.set('section', 'gallery');
                 this.__renderGallery(e.model.item.path);
+            }
+
+            __onImageTap(e) {
+                let item = e.model.item;
+                console.log(item);
+                /*this.$.ajax.post('/api/gallery/upload', {
+                    image: image.image
+                });*/
+            }
+
+            __onUploadTap() {
+                this.$.browser.click();
+            }
+
+            __onBrowserChange(e) {
+                let file = e.target.files[0];
+                let fd = new FormData();
+                fd.append('userfile', file);
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4) {
+                        this.$.browser.value = '';
+                        let res = JSON.parse(xhr.responseText);
+                        if (res.success) {
+                            this.$.feed.notify({
+                                title: 'Hei baby...',
+                                body: 'Your memex like this one. yummm',
+                                image: res.data.url
+                            })
+                        }
+                    }
+                };
+                xhr.open('POST', 'api/gallery/upload');
+                xhr.send(fd);
             }
 
             __onRefreshTap() {

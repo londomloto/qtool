@@ -20,6 +20,17 @@ class Feed extends \QTool\Api\Libs\Module {
         $title = $this->request->post('title');
         $body = $this->request->post('body');
         $authorization = $this->request->post('authorization');
+        $payload = array(
+            'title' => $title,
+            'body' => $body,
+            'icon' => 'img/manifest/icon-48x48.png',
+        );
+
+        $image = $this->request->post('image');
+
+        if ($image) {
+            $payload['image'] = $image;
+        }
 
         $poster = new Scrapper();
 
@@ -28,22 +39,8 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'message' => array(
                     'topic' => $topic,
-                    'data' => array(
-                        'title' => $title,
-                        'body' => $body,
-                        'icon' => 'img/manifest/icon-48x48.png',
-                        'click_action' => 'https://www.pusdikadm.xyz/qtool'
-                    )/*,
-                    'webpush' => array(
-                        'notification' => array(
-                            'title' => $title,
-                            'body' => $body,
-                            'icon' => 'img/manifest/icon-48x48.png'
-                        )
-                    )*/
-                    
+                    'data' => $payload
                 )
-                
             ),
             // array(
             //     'message' => array(

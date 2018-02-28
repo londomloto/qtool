@@ -89,7 +89,6 @@
         </style>
 
         <q-session session="{{ session }}"></q-session>
-        <q-feed id="feed"></q-feed>
 
         <app-drawer-layout id="layout" fullbleed>
             <app-drawer id="drawer" slot="drawer">
@@ -169,11 +168,6 @@
                 } else {
                     this.set('module', 'q-grab');
                 }
-
-                this.$.feed.notify({
-                    title: 'Hei baby...',
-                    body: 'I want to ngewex with you!'
-                });
             }
 
             __accentChanged(accent) {
