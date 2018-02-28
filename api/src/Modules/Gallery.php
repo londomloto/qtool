@@ -90,7 +90,7 @@ class Gallery extends \QTool\Api\Libs\Module {
 
     public function upload() {
         if (isset($_FILES['userfile'])) {
-            $path = 'temp/upload_'.date('ymdhis');
+            $path = 'temp/upload_'.md5_file($_FILES['userfile']['tmp_name']);
             $temp = BASEPATH.$path;
             if (move_uploaded_file($_FILES['userfile']['tmp_name'], $temp)) {
                 return array(

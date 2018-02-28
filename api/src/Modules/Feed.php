@@ -22,8 +22,7 @@ class Feed extends \QTool\Api\Libs\Module {
         $authorization = $this->request->post('authorization');
         $payload = array(
             'title' => $title,
-            'body' => $body,
-            'icon' => 'img/manifest/icon-48x48.png',
+            'body' => $body
         );
 
         $image = $this->request->post('image');
