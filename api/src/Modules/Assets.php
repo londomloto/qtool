@@ -4,8 +4,8 @@ namespace QTool\Api\Modules;
 class Assets extends \QTool\Api\Libs\Module {
 
     public function thumb() {
-        $maxw = 450;
-        $maxh = 450;
+        $maxw = 300;
+        $maxh = 400;
         $path = urldecode($this->request->get('path'));
         $file = BASEPATH.$path;
 
