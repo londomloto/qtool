@@ -32,10 +32,12 @@ class Feed extends \QTool\Api\Libs\Module {
                         'title' => $title,
                         'body' => $body
                     ),
-                    'notification' => array(
-                        'title' => $title,
-                        'body' => $body,
-                        'icon' => 'img/manifest/icon-48x48.png'
+                    'webpush' => array(
+                        'notification' => array(
+                            'title' => $title,
+                            'body' => $body,
+                            'icon' => 'img/manifest/icon-48x48.png'
+                        )
                     )
                 )
             ),
