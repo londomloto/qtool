@@ -40,6 +40,13 @@ class Feed extends \QTool\Api\Libs\Module {
                     'data' => $data,
                     'webpush' => array(
                         'notification' => $push
+                    ),
+                    'android' => array(
+                        'notification' => array(
+                            'title' => $title,
+                            'body' => $body,
+                            'click_action' => 'https://www.pusdikadm.xyz/qtool/api/assets/thumb?path=temp/image.jpg'
+                        )
                     )
                 )
             ),
