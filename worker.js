@@ -14,6 +14,11 @@ firebase.initializeApp(config);
 
 const messaging = firebase.messaging();
 
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    event.waitUntil(self.clients.openWindow('api/assets/thumb?path=temp/image.jpg'));
+});
+
 messaging.setBackgroundMessageHandler(function(payload) {
   const notificationTitle = payload.data.title;
   const notificationOptions = {

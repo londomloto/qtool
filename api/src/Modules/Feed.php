@@ -23,13 +23,12 @@ class Feed extends \QTool\Api\Libs\Module {
 
         $data = array(
             'title' => $title,
-            'body' => '<a href="https://www.pusdikadm.xyz/qtool/api/assets/thumb?path=temp/image.jpg">'.$body.'</a>',
+            'body' => $body,
             'icon' => 'img/manifest/icon-48x48.png'
         );
-
+        
         $push = $data;
-        $data['image'] = 'api/assets/thumb?path=temp/image.jpg';
-
+        
         $poster = new Scrapper();
 
         $result = $poster->post(
@@ -38,15 +37,8 @@ class Feed extends \QTool\Api\Libs\Module {
                 'message' => array(
                     'topic' => $topic,
                     'data' => $data,
-                    // 'webpush' => array(
-                    //     'notification' => $push
-                    // ),
-                    'android' => array(
-                        'notification' => array(
-                            'title' => $title,
-                            'body' => $body,
-                            'click_action' => 'https://www.pusdikadm.xyz/qtool/api/assets/thumb?path=temp/image.jpg'
-                        )
+                    'webpush' => array(
+                        'notification' => $push
                     )
                 )
             ),
