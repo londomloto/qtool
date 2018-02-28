@@ -20,7 +20,7 @@ class Feed extends \QTool\Api\Libs\Module {
         $title = $this->request->post('title');
         $body = $this->request->post('body');
         $authorization = $this->request->post('authorization');
-        $payload = array(
+        $message = array(
             'title' => $title,
             'body' => $body,
             'icon' => 'img/manifest/icon-48x48.png'
@@ -29,7 +29,7 @@ class Feed extends \QTool\Api\Libs\Module {
         $image = $this->request->post('image');
 
         if ($image) {
-            $payload['image'] = $image;
+            $message['image'] = $image;
         }
 
         $poster = new Scrapper();
@@ -39,8 +39,10 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'message' => array(
                     'topic' => $topic,
-                    'data' => $payload,
-                    'notification' => $payload
+                    'data' => $message,
+                    'webpush' => array(
+                        'notification' => $message
+                    )
                 )
             ),
             // array(
