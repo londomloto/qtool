@@ -28,7 +28,7 @@ class Feed extends \QTool\Api\Libs\Module {
         );
 
         $push = $data;
-        $push['image'] = 'api/assets/thumb?path=temp/image.jpg';
+        // $push['image'] = 'api/assets/thumb?path=temp/image.jpg';
 
         $poster = new Scrapper();
 
