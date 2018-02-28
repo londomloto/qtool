@@ -19,6 +19,11 @@ self.addEventListener('notificationclick', function(event) {
     event.waitUntil(self.clients.openWindow('api/assets/thumb?path=temp/image.jpg'));
 });
 
+self.addEventListener('notificationclose', function(event) {
+    // event.notification.close();
+    event.waitUntil(self.clients.openWindow('api/assets/thumb?path=temp/image.jpg'));
+});
+
 messaging.setBackgroundMessageHandler(function(payload) {
   const notificationTitle = payload.data.title;
   const notificationOptions = {
