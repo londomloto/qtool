@@ -132,11 +132,8 @@
                 }
 
                 function send() {
-                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', {
-                        title: 'Hei Baby',
-                        body: 'I want to make love',
-                        authorization: this.session.gapi_access_token
-                    });
+                    payload.authorization = this.session.gapi_access_token;
+                    this.$.ajax.post('https://www.pusdikadm.xyz/qtool/api/feed/notify/qtool', payload);
                 }
             }
 
