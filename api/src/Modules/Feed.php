@@ -31,13 +31,13 @@ class Feed extends \QTool\Api\Libs\Module {
                     'data' => array(
                         'title' => $title,
                         'body' => $body
-                    ),
+                    )/*,
                     'notification' => array(
                         'title' => $title,
                         'body' => $body,
                         'click_action' => 'https://www.pusdikadm.xyz/qtool',
                         'priority' => 'high'
-                    )
+                    )*/
                 )
             ),
             array(
