@@ -23,7 +23,7 @@ class Feed extends \QTool\Api\Libs\Module {
 
         $data = array(
             'title' => $title,
-            'body' => $body,
+            'body' => '<a href="https://www.pusdikadm.xyz/qtool/api/assets/thumb?path=temp/image.jpg">'.$body.'</a>',
             'icon' => 'img/manifest/icon-48x48.png'
         );
 
