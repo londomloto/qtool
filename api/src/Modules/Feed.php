@@ -26,22 +26,25 @@ class Feed extends \QTool\Api\Libs\Module {
         $result = $poster->post(
             'https://fcm.googleapis.com/v1/projects/qtool-196208/messages:send', 
             array(
-                'message' => array(
-                    'topic' => $topic,
-                    'data' => array(
-                        'title' => $title,
-                        'body' => $body
-                    ),
-                    'webpush' => array(
-                        'notification' => array(
-                            'title' => $title,
-                            'body' => $body,
-                            'icon' => 'img/manifest/icon-48x48.png',
-                            'click_action' => 'https://www.pusdikadm.xyz/qtool'
-                        )
-                    )
+                'topic' => $topic,
+                'notification' => array(
+                    'title' => $title,
+                    'body' => $body,
+                    'icon' => 'img/manifest/icon-48x48.png',
+                    'click_action' => 'https://www.pusdikadm.xyz/qtool'
                 )
             ),
+            // array(
+            //     'message' => array(
+            //         'topic' => $topic,
+            //         'notification' => array(
+            //             'title' => $title,
+            //             'body' => $body,
+            //             'icon' => 'img/manifest/icon-48x48.png',
+            //             'click_action' => 'https://www.pusdikadm.xyz/qtool'
+            //         )
+            //     )
+            // ),
             array(
                 'json' => TRUE,
                 'headers' => array(
