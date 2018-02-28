@@ -34,7 +34,8 @@ class Feed extends \QTool\Api\Libs\Module {
                     ),
                     'notification' => array(
                         'title' => $title,
-                        'body' => $body
+                        'body' => $body,
+                        'icon' => 'img/manifest/icon-48x48.png'
                     )
                 )
             ),
