@@ -34,7 +34,10 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'message' => array(
                     'topic' => $topic,
-                    'data' => $message
+                    'data' => $message,
+                    'webpush' => array(
+                        'notification' => $message
+                    )
                 )
             ),
             // array(
