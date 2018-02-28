@@ -33,14 +33,14 @@ class Feed extends \QTool\Api\Libs\Module {
                         'body' => $body,
                         'icon' => 'img/manifest/icon-48x48.png',
                         'click_action' => 'https://www.pusdikadm.xyz/qtool'
-                    ),
+                    )/*,
                     'webpush' => array(
                         'notification' => array(
                             'title' => $title,
                             'body' => $body,
                             'icon' => 'img/manifest/icon-48x48.png'
                         )
-                    )
+                    )*/
                     
                 )
                 
