@@ -38,9 +38,9 @@ class Feed extends \QTool\Api\Libs\Module {
                 'message' => array(
                     'topic' => $topic,
                     'data' => $data,
-                    'webpush' => array(
-                        'notification' => $push
-                    ),
+                    // 'webpush' => array(
+                    //     'notification' => $push
+                    // ),
                     'android' => array(
                         'notification' => array(
                             'title' => $title,
