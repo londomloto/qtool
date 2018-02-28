@@ -28,11 +28,15 @@ class Feed extends \QTool\Api\Libs\Module {
             array(
                 'message' => array(
                     'topic' => $topic,
+                    'data' => array(
+                        'title' => $title,
+                        'body' => $body,
+                        'icon' => 'img/manifest/icon-48x48.png'
+                    ),
                     'notification' => array(
                         'title' => $title,
                         'body' => $body,
-                        'icon' => 'img/manifest/icon-48x48.png',
-                        'click_action' => 'https://www.pusdikadm.xyz/qtool'
+                        'icon' => 'img/manifest/icon-48x48.png'
                     )
                 )
                 
